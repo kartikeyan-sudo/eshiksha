@@ -81,47 +81,50 @@ export default function LibraryPage() {
 
   const renderOwnedSection = (items: Ebook[]) => (
     items.length > 0 ? (
-      <div className="space-y-6">
-        <EbookGrid items={items} />
-        <div className="glass-surface rounded-2xl p-5">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Quick Downloads</h2>
-          <div className="grid gap-3">
-            {items.map((ebook) => {
-              const progress = progressByEbook[ebook.id];
-              return (
-                <div key={ebook.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--glass-border)] p-3 hover:bg-[var(--surface-hover)] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <img src={ebook.coverUrl} alt="" className="h-10 w-8 rounded object-cover" loading="lazy" />
-                    <div>
-                      <p className="font-medium text-[var(--text-primary)] text-sm">{ebook.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <div className="h-1.5 w-20 rounded-full bg-[var(--accent-soft)] overflow-hidden">
-                          <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${progress?.progressPercent || 0}%` }} />
-                        </div>
-                        <p className="text-xs text-[var(--text-muted)]">
-                          {progress ? `${progress.progressPercent}%` : "Not started"}
-                        </p>
-                      </div>
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
+        {items.map((ebook) => {
+          const progress = progressByEbook[ebook.id];
+          return (
+            <div key={ebook.id} className="premium-card flex flex-col items-start gap-4 p-4 hover:border-[var(--accent)]">
+              <div className="flex gap-4 w-full">
+                <img src={ebook.coverUrl} alt="" className="h-24 w-16 rounded-md object-cover flex-shrink-0" loading="lazy" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-[var(--text-primary)] text-sm line-clamp-2">{ebook.title}</p>
+                  <p className="text-xs text-[var(--text-muted)] mt-1">{ebook.author}</p>
+                  
+                  {/* Progress Bar inside Card */}
+                  <div className="mt-3 w-full">
+                    <div className="h-1.5 w-full rounded-full bg-[var(--accent-soft)] overflow-hidden">
+                      <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${progress?.progressPercent || 0}%` }} />
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Link href={`/ebook/${ebook.id}`}>
-                      <NeuButton variant="ghost" className="text-xs min-h-[32px] px-3 py-1">Read</NeuButton>
-                    </Link>
-                    <NeuButton
-                      variant="secondary"
-                      className="text-xs min-h-[32px] px-3 py-1"
-                      onClick={() => onDownload(ebook.id)}
-                      loading={downloadingId === ebook.id}
-                    >
-                      Download
-                    </NeuButton>
+                    <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-medium">
+                      {progress ? `${progress.progressPercent}% COMPLETED` : "NOT STARTED"}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
+              
+              <div className="flex gap-2 w-full mt-auto">
+                <Link href={`/ebook/${ebook.id}`} className="flex-1">
+                  <NeuButton className="w-full text-xs font-semibold py-2">Resume Reading</NeuButton>
+                </Link>
+                <NeuButton
+                  variant="secondary"
+                  className="px-3"
+                  onClick={() => onDownload(ebook.id)}
+                  loading={downloadingId === ebook.id}
+                  aria-label="Download PDF"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                </NeuButton>
+              </div>
+            </div>
+          );
+        })}
       </div>
     ) : (
       <div className="glass-surface rounded-2xl p-12 text-center space-y-4">

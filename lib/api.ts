@@ -339,6 +339,13 @@ export function updateOrderStatus(orderId: number, status: string, token: string
   });
 }
 
+export function deleteAdminOrder(orderId: number, token: string) {
+  return apiRequest<{ message: string; order: { id: number } }>(`/api/admin/orders/${orderId}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
 // ═══════ Admin: DB Management ═══════
 
 export function getAdminDbStats(token: string) {

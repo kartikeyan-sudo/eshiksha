@@ -55,7 +55,15 @@ export default function Home() {
   const [trending, setTrending] = useState<Ebook[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("All");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   useEffect(() => {
     Promise.all([listEbooks(), listTrendingEbooks().catch(() => [])])
@@ -76,7 +84,7 @@ export default function Home() {
   const filtered = useMemo(() => {
     return ebooks.filter((item) => {
       const matchCategory = category === "All" || (item.category || "General") === category;
-      const needle = search.toLowerCase();
+      const needle = debouncedSearch.toLowerCase();
       const matchSearch =
         !needle ||
         item.title.toLowerCase().includes(needle) ||
@@ -84,7 +92,7 @@ export default function Home() {
         (item.tags || []).some((tag) => tag.toLowerCase().includes(needle));
       return matchCategory && matchSearch;
     });
-  }, [ebooks, category, search]);
+  }, [ebooks, category, debouncedSearch]);
 
   const newReleases = useMemo(() => {
     return [...ebooks].sort((a, b) => b.id - a.id).slice(0, 8);

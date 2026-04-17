@@ -6,7 +6,7 @@ import { NeuButton } from "@/components/ui/NeuButton";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { BackButton } from "@/components/ui/BackButton";
 import { getClientToken } from "@/lib/auth";
-import { listAdminOrders, updateOrderStatus } from "@/lib/api";
+import { deleteAdminOrder, listAdminOrders, updateOrderStatus } from "@/lib/api";
 import type { AdminOrder } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
 
@@ -39,6 +39,7 @@ export default function AdminOrdersPage() {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [toast, setToast] = useState({ open: false, message: "", variant: "success" as "success" | "error" });
 
   const fetchOrders = useCallback(async () => {
@@ -95,6 +96,27 @@ export default function AdminOrdersPage() {
       setToast({ open: true, message: error instanceof Error ? error.message : "Failed to update", variant: "error" });
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const onDeleteOrder = async (order: AdminOrder) => {
+    const token = getClientToken();
+    if (!token) return;
+
+    const ok = window.confirm(
+      `Delete order #${order.id} for ${order.userEmail}? This cannot be undone.`,
+    );
+    if (!ok) return;
+
+    setDeletingId(order.id);
+    try {
+      await deleteAdminOrder(order.id, token);
+      await fetchOrders();
+      setToast({ open: true, message: "Order deleted", variant: "success" });
+    } catch (error) {
+      setToast({ open: true, message: error instanceof Error ? error.message : "Failed to delete order", variant: "error" });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -167,16 +189,27 @@ export default function AdminOrdersPage() {
                       {formatDate(order.createdAt)}
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        value={order.status}
-                        onChange={(e) => onStatusChange(order.id, e.target.value as (typeof STATUS_OPTIONS)[number])}
-                        disabled={updatingId === order.id}
-                        className="rounded-lg border border-[var(--glass-border)] bg-transparent px-2 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
-                      >
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={order.status}
+                          onChange={(e) => onStatusChange(order.id, e.target.value as (typeof STATUS_OPTIONS)[number])}
+                          disabled={updatingId === order.id || deletingId === order.id}
+                          className="rounded-lg border border-[var(--glass-border)] bg-transparent px-2 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                        <NeuButton
+                          variant="danger"
+                          className="min-h-[32px] px-3 py-1 text-xs"
+                          onClick={() => onDeleteOrder(order)}
+                          loading={deletingId === order.id}
+                          disabled={updatingId === order.id}
+                        >
+                          Delete
+                        </NeuButton>
+                      </div>
                     </td>
                   </tr>
                 ))}

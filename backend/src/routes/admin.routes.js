@@ -320,6 +320,54 @@ router.patch(
   }),
 );
 
+router.delete(
+  "/orders/:id",
+  asyncHandler(async (req, res) => {
+    const orderId = Number(req.params.id);
+
+    if (!Number.isInteger(orderId)) {
+      return res.status(400).json({ message: "Invalid order id" });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const orderResult = await client.query(
+        "SELECT id, user_id, ebook_id FROM purchases WHERE id = $1",
+        [orderId],
+      );
+
+      if (orderResult.rowCount === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      const order = orderResult.rows[0];
+
+      // Remove linked payment transaction history for this purchase pair.
+      await client.query(
+        "DELETE FROM payment_transactions WHERE user_id = $1 AND ebook_id = $2",
+        [order.user_id, order.ebook_id],
+      );
+
+      await client.query("DELETE FROM purchases WHERE id = $1", [orderId]);
+
+      await client.query("COMMIT");
+
+      return res.json({
+        message: "Order deleted",
+        order: { id: orderId },
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }),
+);
+
 router.get(
   "/db/stats",
   asyncHandler(async (_req, res) => {

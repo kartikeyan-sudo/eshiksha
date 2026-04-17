@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { clearClientAuth } from "@/lib/auth";
@@ -46,6 +47,7 @@ const sidebarLinks = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = () => {
     clearClientAuth();
@@ -53,66 +55,116 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="glass-surface flex flex-col rounded-2xl p-4 w-full lg:w-64 lg:min-h-[calc(100vh-8rem)]">
-      {/* Header */}
-      <div className="mb-6 flex items-center gap-3 px-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] text-white text-sm font-bold shadow-lg">
-          A
-        </div>
-        <div>
+    <>
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden flex items-center justify-between glass-surface rounded-2xl p-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent)] text-white text-xs font-bold shadow-sm">
+            A
+          </div>
           <p className="text-sm font-bold text-[var(--text-primary)]">Admin Panel</p>
-          <p className="text-xs text-[var(--text-muted)]">EShikhsha</p>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex flex-row gap-1 overflow-x-auto lg:flex-col lg:gap-1 lg:overflow-visible">
-        {sidebarLinks.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 whitespace-nowrap",
-                isActive
-                  ? "bg-[var(--accent)] text-white shadow-md"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]",
-              )}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d={item.icon} />
-              </svg>
-              <span className="hidden sm:inline">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Logout */}
-      <div className="mt-4 border-t border-[var(--glass-border)] pt-4 hidden lg:block">
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--danger)] hover:bg-[var(--danger)]/10 transition-colors duration-200"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        <button className="text-[var(--text-primary)]" onClick={() => setIsOpen(true)} aria-label="Open Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          Logout
         </button>
       </div>
-    </aside>
+
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden backdrop-blur-sm animate-fade-in"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={cn(
+        "glass-surface flex flex-col p-4 w-[280px] lg:w-64 h-[100dvh] lg:h-auto lg:min-h-[calc(100vh-8rem)] overflow-y-auto",
+        "fixed inset-y-0 left-0 z-50 lg:static transition-transform duration-300 ease-in-out",
+        "rounded-r-2xl lg:rounded-2xl rounded-l-none lg:rounded-l-2xl shadow-2xl lg:shadow-none bg-[var(--bg)] lg:bg-transparent",
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}>
+        {/* Mobile Sidebar Header */}
+        <div className="flex items-center justify-between mb-6 lg:hidden px-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent)] text-white text-xs font-bold shadow-sm">
+              A
+            </div>
+            <p className="text-sm font-bold text-[var(--text-primary)]">Menu</p>
+          </div>
+          <button className="text-[var(--text-muted)] p-1 rounded-lg hover:bg-[var(--surface-hover)]" onClick={() => setIsOpen(false)} aria-label="Close Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Header - Desktop Only */}
+        <div className="mb-6 hidden lg:flex items-center gap-3 px-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] text-white text-sm font-bold shadow-lg">
+            A
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[var(--text-primary)]">Admin Panel</p>
+            <p className="text-xs text-[var(--text-muted)]">EShikhsha</p>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex flex-col gap-1">
+          {sidebarLinks.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200",
+                  isActive
+                    ? "bg-[var(--accent)] text-white shadow-md"
+                    : "text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--text-primary)]",
+                )}
+                onClick={() => setIsOpen(false)}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d={item.icon} />
+                </svg>
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Logout */}
+        <div className="mt-4 border-t border-[var(--glass-border)] pt-4">
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              handleLogout();
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[var(--danger)] hover:bg-[var(--danger)]/10 transition-colors duration-200"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

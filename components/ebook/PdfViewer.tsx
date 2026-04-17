@@ -31,10 +31,11 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
   const [viewerMessage, setViewerMessage] = useState("");
-  const [readerDarkMode, setReaderDarkMode] = useState(false);
+  const [readerDarkMode, setReaderDarkMode] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showNotes, setShowNotes] = useState(true);
   const [pageJump, setPageJump] = useState("");
+  const [showUI, setShowUI] = useState(true);
 
   const maxAllowedPage = useMemo(() => {
     if (purchased) {
@@ -230,69 +231,77 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
   return (
     <div className={`reader-container space-y-4 ${readerDarkMode ? "reader-dark" : ""} ${isFullscreen ? "fixed inset-0 z-50 bg-[var(--reader-bg)] overflow-auto p-4" : ""}`}>
       {/* Sticky Header */}
-      <div className="sticky top-3 z-30 glass-surface rounded-2xl px-3 py-3 md:px-4">
-        <div className="flex flex-wrap items-center gap-2 md:gap-3">
-          {/* Back */}
-          <NeuButton variant="ghost" className="text-xs" onClick={() => isFullscreen ? toggleFullscreen() : router.back()}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-            Back
-          </NeuButton>
+      {showUI && (
+        <div className="sticky top-3 z-30 glass-surface rounded-2xl px-3 py-3 md:px-4 transition-opacity duration-300">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            {/* Back */}
+            <NeuButton variant="ghost" className="text-xs" onClick={() => isFullscreen ? toggleFullscreen() : router.back()}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              Back
+            </NeuButton>
 
-          {/* Title + Page info */}
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{title || "Ebook Reader"}</p>
-            <p className="text-xs text-[var(--text-muted)]">Page {pageNumber} of {purchased ? numPages || 1 : maxAllowedPage} • {progressValue}%</p>
-          </div>
-
-          {/* Progress bar */}
-          <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--accent-soft)] md:w-32">
-            <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style={{ width: `${progressValue}%` }} />
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1">
-            {/* Page jump */}
-            <div className="hidden sm:flex items-center gap-1">
-              <input
-                type="number"
-                value={pageJump}
-                onChange={(e) => setPageJump(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && onPageJump()}
-                placeholder="Go to"
-                min={1}
-                max={maxAllowedPage}
-                className="w-16 rounded-lg border border-[var(--glass-border)] bg-transparent px-2 py-1 text-xs text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--accent)]"
-              />
+            {/* Title + Page info */}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{title || "Ebook Reader"}</p>
+              <p className="text-xs text-[var(--text-muted)]">Page {pageNumber} of {purchased ? numPages || 1 : maxAllowedPage} • {progressValue}%</p>
             </div>
 
-            {/* Bookmark */}
-            <NeuButton variant="ghost" className="text-xs" onClick={onToggleBookmark}>
-              {currentPageBookmark ? "★" : "☆"}
-            </NeuButton>
+            {/* Progress bar */}
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--accent-soft)] md:w-32">
+              <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style={{ width: `${progressValue}%` }} />
+            </div>
 
-            {/* Dark Mode */}
-            <NeuButton variant="ghost" className="text-xs" onClick={() => setReaderDarkMode((p) => !p)}>
-              {readerDarkMode ? "☀️" : "🌙"}
-            </NeuButton>
+            {/* Actions */}
+            <div className="flex items-center gap-1">
+              {/* Page jump */}
+              <div className="hidden sm:flex items-center gap-1">
+                <input
+                  type="number"
+                  value={pageJump}
+                  onChange={(e) => setPageJump(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && onPageJump()}
+                  placeholder="Go to"
+                  min={1}
+                  max={maxAllowedPage}
+                  className="w-16 rounded-lg border border-[var(--glass-border)] bg-transparent px-2 py-1 text-xs text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--accent)]"
+                />
+              </div>
 
-            {/* Notes toggle */}
-            <NeuButton variant="ghost" className="text-xs hidden lg:flex" onClick={() => setShowNotes((p) => !p)}>
-              📝
-            </NeuButton>
+              {/* Bookmark */}
+              <NeuButton variant="ghost" className="text-xs" onClick={onToggleBookmark}>
+                {currentPageBookmark ? "★" : "☆"}
+              </NeuButton>
 
-            {/* Fullscreen */}
-            <NeuButton variant="ghost" className="text-xs" onClick={toggleFullscreen}>
-              {isFullscreen ? "⊠" : "⛶"}
-            </NeuButton>
+              {/* Dark Mode */}
+              <NeuButton variant="ghost" className="text-xs" onClick={() => setReaderDarkMode((p) => !p)}>
+                {readerDarkMode ? "☀️" : "🌙"}
+              </NeuButton>
+
+              {/* Notes toggle */}
+              <NeuButton variant="ghost" className="text-xs hidden lg:flex" onClick={() => setShowNotes((p) => !p)}>
+                📝
+              </NeuButton>
+
+              {/* Fullscreen */}
+              <NeuButton variant="ghost" className="text-xs" onClick={toggleFullscreen}>
+                {isFullscreen ? "⊠" : "⛶"}
+              </NeuButton>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className={`grid gap-4 ${showNotes ? "lg:grid-cols-[1fr_300px]" : ""}`}>
+      <div className={`grid gap-4 relative ${showNotes && showUI ? "lg:grid-cols-[1fr_300px]" : ""}`}>
         {/* PDF Viewer */}
         <div ref={viewerPaneRef} className="neu-raised relative overflow-hidden rounded-2xl p-2 sm:p-3 md:p-6" style={{ background: readerDarkMode ? "var(--reader-bg)" : undefined }}>
+          {/* Tap Zones for Page Turning & UI Toggle */}
+          <div className="absolute inset-0 z-20 flex" onClick={() => setShowUI(!showUI)}>
+            <div className="w-[30%] h-full" onClick={(e) => { e.stopPropagation(); goPrevious(); }} />
+            <div className="w-[40%] h-full flex-1" />
+            <div className="w-[30%] h-full" onClick={(e) => { e.stopPropagation(); goNext(); }} />
+          </div>
           <Document
             file={documentFile}
             onLoadSuccess={({ numPages: loadedPages }) => {
@@ -327,8 +336,8 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
         </div>
 
         {/* Notes Sidebar */}
-        {showNotes && (
-          <aside className="glass-surface h-fit rounded-2xl p-4 animate-fade-in">
+        {showNotes && showUI && (
+          <aside className="glass-surface h-fit rounded-2xl p-4 animate-fade-in relative z-30">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">📝 Notes</h3>
               <span className="text-xs text-[var(--text-muted)]">Page {pageNumber}</span>
@@ -399,17 +408,19 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
       </div>
 
       {/* Page Navigation Footer */}
-      <div className="glass-surface flex items-center justify-between rounded-2xl p-3">
-        <NeuButton variant="ghost" onClick={goPrevious} disabled={pageNumber <= 1}>
-          ← Previous
-        </NeuButton>
-        <p className="text-sm text-[var(--text-secondary)]">
-          Page {pageNumber} of {purchased ? numPages || 1 : maxAllowedPage}
-        </p>
-        <NeuButton variant="ghost" onClick={goNext} disabled={pageNumber >= maxAllowedPage}>
-          Next →
-        </NeuButton>
-      </div>
+      {showUI && (
+        <div className="glass-surface flex items-center justify-between rounded-2xl p-3 relative z-30 transition-opacity duration-300">
+          <NeuButton variant="ghost" onClick={goPrevious} disabled={pageNumber <= 1}>
+            ← Previous
+          </NeuButton>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Page {pageNumber} of {purchased ? numPages || 1 : maxAllowedPage}
+          </p>
+          <NeuButton variant="ghost" onClick={goNext} disabled={pageNumber >= maxAllowedPage}>
+            Next →
+          </NeuButton>
+        </div>
+      )}
 
       {!purchased && numPages > previewPages ? (
         <p className="text-center text-sm text-[var(--warning)]">
