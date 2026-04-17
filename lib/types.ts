@@ -172,3 +172,12 @@ export type Category = {
   ebookCount: number;
   createdAt: string;
 };
+
+export type AdminDbStats = {
+  users: number;
+  purchases: number;
+  paymentTransactions: number;
+  readingProgress: number;
+  bookmarks: number;
+  notes: number;
+};

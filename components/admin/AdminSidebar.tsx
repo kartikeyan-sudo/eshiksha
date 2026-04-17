@@ -36,6 +36,11 @@ const sidebarLinks = [
     label: "Upload Ebook",
     icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12",
   },
+  {
+    href: "/admin/dashboard/database",
+    label: "DB Management",
+    icon: "M4 7a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm3 3h10m-10 4h10",
+  },
 ];
 
 export function AdminSidebar() {

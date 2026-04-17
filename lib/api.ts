@@ -1,5 +1,6 @@
 import type {
   AdminDashboardStats,
+  AdminDbStats,
   AdminOrdersResponse,
   AdminUser,
   AuthResponse,
@@ -335,6 +336,55 @@ export function updateOrderStatus(orderId: number, status: string, token: string
     method: "PATCH",
     token,
     body: JSON.stringify({ status }),
+  });
+}
+
+// ═══════ Admin: DB Management ═══════
+
+export function getAdminDbStats(token: string) {
+  return apiRequest<AdminDbStats>("/api/admin/db/stats", { token });
+}
+
+export function deleteAdminUser(userId: number, token: string) {
+  return apiRequest<{ message: string; user: { id: number; email: string } }>(`/api/admin/db/users/${userId}`, {
+    method: "DELETE",
+    token,
+  });
+}
+
+export async function downloadUsersPdf(token: string) {
+  const response = await fetch(`${API_BASE}/api/admin/db/users-export.pdf`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new ApiError(payload.message || "Failed to download users PDF", response.status);
+  }
+
+  return response.blob();
+}
+
+export function clearOrderHistory(token: string, beforeDate?: string) {
+  return apiRequest<{ message: string; deleted: { purchases: number; paymentTransactions: number } }>("/api/admin/db/orders", {
+    method: "DELETE",
+    token,
+    body: JSON.stringify(beforeDate ? { beforeDate } : {}),
+  });
+}
+
+export function clearDbLogs(
+  target: "readingProgress" | "bookmarks" | "notes" | "all",
+  token: string,
+) {
+  return apiRequest<{ message: string; deleted: Record<string, number> }>("/api/admin/db/logs", {
+    method: "DELETE",
+    token,
+    body: JSON.stringify({ target }),
   });
 }
 

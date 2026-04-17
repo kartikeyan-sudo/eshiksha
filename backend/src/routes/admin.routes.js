@@ -1,10 +1,16 @@
 const express = require("express");
+const PDFDocument = require("pdfkit");
 const { pool } = require("../db/pool");
 const { authenticate, authorizeAdmin } = require("../middleware/auth");
 const { asyncHandler } = require("../utils/async-handler");
 
 const router = express.Router();
 const ORDER_STATUSES = new Set(["pending", "completed", "delivered"]);
+const LOG_TABLES = {
+  readingProgress: "reading_progress",
+  bookmarks: "bookmarks",
+  notes: "notes",
+};
 
 router.use(authenticate, authorizeAdmin);
 
@@ -310,6 +316,192 @@ router.patch(
     return res.json({
       message: "Order status updated",
       order: updated.rows[0],
+    });
+  }),
+);
+
+router.get(
+  "/db/stats",
+  asyncHandler(async (_req, res) => {
+    const [
+      users,
+      purchases,
+      payments,
+      readingProgress,
+      bookmarks,
+      notes,
+    ] = await Promise.all([
+      pool.query("SELECT COUNT(*)::int AS total FROM users"),
+      pool.query("SELECT COUNT(*)::int AS total FROM purchases"),
+      pool.query("SELECT COUNT(*)::int AS total FROM payment_transactions"),
+      pool.query("SELECT COUNT(*)::int AS total FROM reading_progress"),
+      pool.query("SELECT COUNT(*)::int AS total FROM bookmarks"),
+      pool.query("SELECT COUNT(*)::int AS total FROM notes"),
+    ]);
+
+    return res.json({
+      users: users.rows[0].total,
+      purchases: purchases.rows[0].total,
+      paymentTransactions: payments.rows[0].total,
+      readingProgress: readingProgress.rows[0].total,
+      bookmarks: bookmarks.rows[0].total,
+      notes: notes.rows[0].total,
+    });
+  }),
+);
+
+router.delete(
+  "/db/users/:id",
+  asyncHandler(async (req, res) => {
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+
+    if (req.user?.id === userId) {
+      return res.status(400).json({ message: "You cannot delete your own admin account" });
+    }
+
+    const existing = await pool.query("SELECT id, email, role FROM users WHERE id = $1", [userId]);
+    if (existing.rowCount === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (existing.rows[0].role === "admin") {
+      const adminCount = await pool.query("SELECT COUNT(*)::int AS total FROM users WHERE role = 'admin'");
+      if ((adminCount.rows[0]?.total || 0) <= 1) {
+        return res.status(400).json({ message: "Cannot delete the last admin account" });
+      }
+    }
+
+    const deleted = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id, email", [userId]);
+
+    return res.json({
+      message: "User and related data deleted",
+      user: deleted.rows[0],
+    });
+  }),
+);
+
+router.get(
+  "/db/users-export.pdf",
+  asyncHandler(async (_req, res) => {
+    const users = await pool.query(
+      "SELECT id, email, role, is_active, is_blocked FROM users ORDER BY id ASC",
+    );
+
+    const doc = new PDFDocument({ margin: 36, size: "A4" });
+    const chunks = [];
+
+    const pdfBufferPromise = new Promise((resolve, reject) => {
+      doc.on("data", (chunk) => chunks.push(chunk));
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+      doc.on("error", reject);
+    });
+
+    doc.fontSize(18).text("EShikhsha - User Export", { align: "left" });
+    doc.moveDown(0.25);
+    doc.fontSize(10).fillColor("#555").text(`Generated at: ${new Date().toISOString()}`);
+    doc.fillColor("#000").moveDown(1);
+
+    doc.fontSize(11).text("ID", 36, doc.y, { width: 45 });
+    doc.text("Email", 82, doc.y - 11, { width: 250 });
+    doc.text("Role", 335, doc.y - 11, { width: 70 });
+    doc.text("Active", 410, doc.y - 11, { width: 60 });
+    doc.text("Blocked", 470, doc.y - 11, { width: 60 });
+    doc.moveDown(0.5);
+    doc.moveTo(36, doc.y).lineTo(560, doc.y).strokeColor("#ccc").stroke();
+
+    users.rows.forEach((user) => {
+      if (doc.y > 760) {
+        doc.addPage();
+      }
+
+      doc.moveDown(0.4);
+      doc.fontSize(10).fillColor("#000").text(String(user.id), 36, doc.y, { width: 45 });
+      doc.text(user.email, 82, doc.y - 10, { width: 250 });
+      doc.text(user.role, 335, doc.y - 10, { width: 70 });
+      doc.text(user.is_active ? "Yes" : "No", 410, doc.y - 10, { width: 60 });
+      doc.text(user.is_blocked ? "Yes" : "No", 470, doc.y - 10, { width: 60 });
+    });
+
+    doc.end();
+    const pdfBuffer = await pdfBufferPromise;
+
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=eshiksha-users-${date}.pdf`);
+    return res.send(pdfBuffer);
+  }),
+);
+
+router.delete(
+  "/db/orders",
+  asyncHandler(async (req, res) => {
+    const beforeDate = typeof req.body?.beforeDate === "string" ? req.body.beforeDate.trim() : "";
+    const cutoffDate = beforeDate ? new Date(beforeDate) : null;
+
+    if (beforeDate && Number.isNaN(cutoffDate?.getTime())) {
+      return res.status(400).json({ message: "Invalid beforeDate value" });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      let deletedPurchases;
+      let deletedPayments;
+
+      if (cutoffDate) {
+        deletedPurchases = await client.query("DELETE FROM purchases WHERE created_at < $1", [cutoffDate.toISOString()]);
+        deletedPayments = await client.query("DELETE FROM payment_transactions WHERE created_at < $1", [cutoffDate.toISOString()]);
+      } else {
+        deletedPurchases = await client.query("DELETE FROM purchases");
+        deletedPayments = await client.query("DELETE FROM payment_transactions");
+      }
+
+      await client.query("COMMIT");
+
+      return res.json({
+        message: "Order history cleared",
+        deleted: {
+          purchases: deletedPurchases.rowCount || 0,
+          paymentTransactions: deletedPayments.rowCount || 0,
+        },
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }),
+);
+
+router.delete(
+  "/db/logs",
+  asyncHandler(async (req, res) => {
+    const target = typeof req.body?.target === "string" ? req.body.target : "all";
+
+    const targets = target === "all"
+      ? Object.values(LOG_TABLES)
+      : [LOG_TABLES[target]];
+
+    if (!targets[0]) {
+      return res.status(400).json({
+        message: "Invalid target. Use readingProgress, bookmarks, notes, or all",
+      });
+    }
+
+    const deleted = {};
+    for (const tableName of targets) {
+      const result = await pool.query(`DELETE FROM ${tableName}`);
+      deleted[tableName] = result.rowCount || 0;
+    }
+
+    return res.json({
+      message: "Logs cleared",
+      deleted,
     });
   }),
 );
