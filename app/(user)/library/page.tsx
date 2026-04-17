@@ -90,7 +90,6 @@ export default function LibraryPage() {
                 <img src={ebook.coverUrl} alt="" className="h-24 w-16 rounded-md object-cover flex-shrink-0" loading="lazy" />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-[var(--text-primary)] text-sm line-clamp-2">{ebook.title}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">{ebook.author}</p>
                   
                   {/* Progress Bar inside Card */}
                   <div className="mt-3 w-full">
