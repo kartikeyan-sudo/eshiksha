@@ -354,36 +354,18 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
           </div>
 
           {/* Price + Actions */}
-          <div className="mt-6 flex flex-col gap-4">
-            <div className="flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
-              <div>
-                <p className="text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-1">Total Price</p>
-                <p className="text-4xl font-extrabold text-[var(--text-primary)]">{ebook.isFree ? "Free" : formatINR(ebook.price)}</p>
-              </div>
-            </div>
-            
-            <div className="grid gap-3 sm:grid-cols-2 mt-2">
-              {!hasAccess && (
-                <NeuButton 
-                  className="w-full py-4 text-base font-bold shadow-lg bg-[var(--accent)] text-white hover:scale-[1.02] transition-transform" 
-                  onClick={buyNow} 
-                  loading={buying}
-                >
-                  Buy Now
-                </NeuButton>
-              )}
-              
-              <NeuButton 
-                variant={hasAccess ? "primary" : "secondary"} 
-                className={`w-full py-4 text-base font-bold ${hasAccess ? 'col-span-2' : ''}`}
-                onClick={openReader} 
-                loading={loadingAccess}
-              >
+          <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-3xl font-bold text-[var(--accent)]">{ebook.isFree ? "Free" : formatINR(ebook.price)}</p>
+            <div className="flex flex-wrap gap-2">
+              <NeuButton onClick={openReader} loading={loadingAccess}>
                 {hasAccess ? "Read Full Ebook" : "Open Preview"}
               </NeuButton>
-              
-              {hasAccess && (
-                <NeuButton variant="secondary" className="w-full col-span-2 py-3" onClick={downloadEbook} loading={downloading}>
+              {!hasAccess ? (
+                <NeuButton variant="secondary" onClick={buyNow} loading={buying}>
+                  Buy Now
+                </NeuButton>
+              ) : (
+                <NeuButton variant="secondary" onClick={downloadEbook} loading={downloading}>
                   Download PDF
                 </NeuButton>
               )}
