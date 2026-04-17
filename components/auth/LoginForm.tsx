@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loginUser } from "@/lib/api";
@@ -20,6 +20,10 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(false);
 
+  useEffect(() => {
+    router.prefetch("/");
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -27,9 +31,6 @@ export function LoginForm() {
     try {
       const response = await loginUser(email, password);
       setClientAuth(response.token, response.user.role);
-      setToastVariant("success");
-      setMessage("Login successful! Redirecting...");
-      setToast(true);
       router.replace("/");
     } catch (error) {
       setToastVariant("error");

@@ -31,11 +31,22 @@ export default function EbookPage() {
   }, [params?.id]);
 
   if (loading) {
-    return <div className="mx-auto w-full max-w-6xl px-4 py-8 text-center text-sm text-[var(--text-muted)]">Loading ebook...</div>;
+    return (
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
+        <div className="glass-surface rounded-2xl p-10 text-center text-sm text-[var(--text-muted)]">Loading ebook details...</div>
+      </div>
+    );
   }
 
   if (!ebook) {
-    return <div className="mx-auto w-full max-w-6xl px-4 py-8 text-center text-sm text-[var(--danger)]">{error || "Ebook not found"}</div>;
+    return (
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-8">
+        <div className="glass-surface rounded-2xl p-10 text-center">
+          <p className="text-sm font-semibold text-[var(--danger)]">{error || "Ebook not found"}</p>
+          <p className="mt-2 text-xs text-[var(--text-muted)]">Try going back to the catalog and opening the book again.</p>
+        </div>
+      </div>
+    );
   }
 
   return (

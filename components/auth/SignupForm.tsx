@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerUser } from "@/lib/api";
@@ -19,6 +19,10 @@ export function SignupForm() {
   const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(false);
+
+  useEffect(() => {
+    router.prefetch("/");
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

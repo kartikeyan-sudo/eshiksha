@@ -148,6 +148,39 @@ canvas {
   display: block;
 }
 
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  color: var(--text-primary);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+select option {
+  color: #0f172a;
+  background: #f8fbff;
+}
+
+[data-theme="dark"] select option {
+  color: #e2e8f0;
+  background: #0f172a;
+}
+
 /* ========================================================
    Glassmorphism Surfaces
    ======================================================== */

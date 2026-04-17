@@ -8,10 +8,12 @@ export default function AdminDashboardLayout({
 }) {
   return (
     <AdminSessionGuard>
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="mx-auto w-full max-w-[1280px] px-4 py-5 md:px-8 md:py-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
           <AdminSidebar />
-          <div className="flex-1">{children}</div>
+          <div className="min-w-0 flex-1">
+            <div className="glass-surface rounded-2xl p-4 md:p-5">{children}</div>
+          </div>
         </div>
       </div>
     </AdminSessionGuard>

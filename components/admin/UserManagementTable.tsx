@@ -44,13 +44,19 @@ export function UserManagementTable({ users, onUpdated }: UserManagementTablePro
   };
 
   return (
-    <div className="neu-raised rounded-2xl overflow-hidden">
+    <div className="glass-surface rounded-2xl overflow-hidden">
       <div className="border-b border-[var(--glass-border)] px-5 py-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">Users</h2>
         <span className="text-sm text-[var(--text-muted)]">{users.length} users</span>
       </div>
 
-      <div className="overflow-x-auto">
+      {users.length === 0 ? (
+        <div className="p-12 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No users found.</p>
+        </div>
+      ) : null}
+
+      <div className="overflow-x-auto" hidden={users.length === 0}>
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--glass-border)]">

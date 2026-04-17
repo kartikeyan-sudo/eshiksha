@@ -2,13 +2,28 @@
 
 import { useEffect, useState } from "react";
 
+const LOADER_SEEN_KEY = "eshikhsha-loader-seen";
+
 export function GlobalLoader() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    try {
+      const seen = sessionStorage.getItem(LOADER_SEEN_KEY) === "1";
+      if (seen) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      sessionStorage.setItem(LOADER_SEEN_KEY, "1");
+    } catch {
+      setLoading(true);
+    }
+
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000); // 1 second loading screen per request
+    }, 260);
 
     return () => clearTimeout(timer);
   }, []);
