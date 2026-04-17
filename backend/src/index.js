@@ -17,9 +17,37 @@ const { notFound, errorHandler } = require("./middleware/error-handler");
 
 const app = express();
 
+function normalizeOrigin(origin) {
+  return String(origin || "")
+    .trim()
+    .replace(/\/+$/, "")
+    .toLowerCase();
+}
+
+const allowedOrigins = env.frontendOrigin
+  .split(",")
+  .map((origin) => normalizeOrigin(origin))
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: env.frontendOrigin,
+    origin(origin, callback) {
+      // Allow non-browser clients and same-origin server-side calls.
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      const requestOrigin = normalizeOrigin(origin);
+      const isAllowed = allowedOrigins.includes(requestOrigin);
+
+      if (isAllowed) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
   }),
 );
 app.use(express.json());
