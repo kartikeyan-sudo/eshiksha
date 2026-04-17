@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backend:dev": "npm --prefix backend run dev",
+    "backend:start": "npm --prefix backend run start"
   },
   "dependencies": {
+    "@embedpdf/react-pdf-viewer": "^2.14.0",
     "next": "16.2.3",
+    "pdfjs-dist": "^4.10.38",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-pdf": "^9.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

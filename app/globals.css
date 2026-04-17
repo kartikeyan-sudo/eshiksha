@@ -1,26 +1,785 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ========================================================
+   EShikhsha — Premium Glass Design System
+   Clean, minimal, high-conversion Scribd-like aesthetic
+   ======================================================== */
+
+/* --- Light Theme --- */
+:root,
+[data-theme="light"] {
+  --bg: #f8f7fc;
+  --bg-gradient-from: #f0eef8;
+  --bg-gradient-to: #faf9ff;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-hover: rgba(255, 255, 255, 0.95);
+  --glass: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(124, 58, 237, 0.08);
+  --text-primary: #1a1625;
+  --text-secondary: #5b5675;
+  --text-muted: #8a8499;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.08);
+  --accent-secondary: #ec4899;
+  --neu-shadow-dark: rgba(166, 158, 190, 0.25);
+  --neu-shadow-light: rgba(255, 255, 255, 0.9);
+  --danger: #ef4444;
+  --success: #22c55e;
+  --info: #3b82f6;
+  --warning: #f59e0b;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --input-bg: rgba(255, 255, 255, 0.5);
+  --overlay: rgba(30, 27, 46, 0.4);
+  --hero-gradient-1: #7c3aed;
+  --hero-gradient-2: #a78bfa;
+  --hero-gradient-3: #ec4899;
+  --star-color: #f59e0b;
+  --star-empty: #d1d5db;
+  --bottom-nav-bg: rgba(255, 255, 255, 0.92);
+  --reader-bg: #ffffff;
+  --reader-text: #1a1625;
 }
 
+/* --- Dark Theme --- */
+[data-theme="dark"] {
+  --bg: #0c0a14;
+  --bg-gradient-from: #080610;
+  --bg-gradient-to: #12101e;
+  --surface: rgba(24, 18, 40, 0.8);
+  --surface-hover: rgba(32, 24, 56, 0.9);
+  --glass: rgba(24, 18, 40, 0.55);
+  --glass-border: rgba(167, 139, 250, 0.1);
+  --text-primary: #f0ecff;
+  --text-secondary: #a8a0c0;
+  --text-muted: #5c5478;
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --accent-soft: rgba(167, 139, 250, 0.08);
+  --accent-secondary: #f472b6;
+  --neu-shadow-dark: rgba(0, 0, 0, 0.4);
+  --neu-shadow-light: rgba(60, 40, 100, 0.1);
+  --danger: #f87171;
+  --success: #4ade80;
+  --info: #60a5fa;
+  --warning: #fbbf24;
+  --card-bg: rgba(18, 14, 32, 0.75);
+  --input-bg: rgba(12, 8, 24, 0.7);
+  --overlay: rgba(5, 3, 12, 0.6);
+  --hero-gradient-1: #a78bfa;
+  --hero-gradient-2: #c4b5fd;
+  --hero-gradient-3: #f472b6;
+  --star-color: #fbbf24;
+  --star-empty: #4b5563;
+  --bottom-nav-bg: rgba(12, 10, 20, 0.95);
+  --reader-bg: #1a1625;
+  --reader-text: #f0ecff;
+}
+
+/* --- Tailwind v4 theme bridge --- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--bg);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-space-grotesk);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* --- Base --- */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  color: var(--text-primary);
+  background: linear-gradient(150deg, var(--bg-gradient-from) 0%, var(--bg-gradient-to) 100%);
+  background-attachment: fixed;
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+/* ========================================================
+   Glassmorphism Surfaces
+   ======================================================== */
+.glass-surface {
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.glass-navbar {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+}
+
+.glass-modal-backdrop {
+  background: var(--overlay);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ========================================================
+   Neumorphism Surfaces (Refined — less heavy)
+   ======================================================== */
+.neu-raised {
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 2px 12px var(--neu-shadow-dark),
+    0 0 0 1px var(--glass-border);
+}
+
+.neu-inset {
+  background: var(--input-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 2px 4px var(--neu-shadow-dark);
+}
+
+/* ========================================================
+   Interactive: Buttons
+   ======================================================== */
+.neu-btn {
+  border: 1px solid var(--glass-border);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
+  box-shadow: 0 2px 8px var(--neu-shadow-dark);
+}
+
+.neu-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--accent-soft);
+  box-shadow:
+    0 4px 16px var(--neu-shadow-dark),
+    0 0 20px var(--accent-soft);
+}
+
+.neu-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: inset 0 2px 4px var(--neu-shadow-dark);
+}
+
+/* ========================================================
+   Premium Card Hover
+   ======================================================== */
+.neu-card-hover {
+  transition: transform 260ms cubic-bezier(0.22, 0.68, 0, 1), box-shadow 260ms ease, border-color 260ms ease;
+}
+
+.neu-card-hover:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow:
+    0 12px 40px var(--neu-shadow-dark),
+    0 0 0 1px var(--accent-soft);
+  border-color: rgba(124, 58, 237, 0.15);
+}
+
+/* ========================================================
+   Premium Card (New)
+   ======================================================== */
+.premium-card {
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  transition: transform 280ms cubic-bezier(0.22, 0.68, 0, 1), box-shadow 280ms ease, border-color 280ms ease;
+  box-shadow: 0 2px 12px var(--neu-shadow-dark);
+}
+
+.premium-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 16px 48px var(--neu-shadow-dark),
+    0 0 0 1px rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.18);
+}
+
+/* ========================================================
+   Rating Stars
+   ======================================================== */
+.rating-stars {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.rating-star {
+  color: var(--star-empty);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.rating-star.filled {
+  color: var(--star-color);
+}
+
+.rating-star.half {
+  position: relative;
+  color: var(--star-empty);
+}
+
+/* ========================================================
+   Category Chip
+   ======================================================== */
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.category-chip:hover,
+.category-chip.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.category-chip .chip-icon {
+  font-size: 18px;
+}
+
+/* ========================================================
+   Hero Section
+   ======================================================== */
+.hero-section {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, var(--hero-gradient-1) 0%, var(--hero-gradient-2) 50%, var(--hero-gradient-3) 100%);
+  background-size: 200% 200%;
+  animation: heroGradient 8s ease infinite;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+@keyframes heroGradient {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ========================================================
+   Section Headers
+   ======================================================== */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ========================================================
+   Horizontal Scroll Container
+   ======================================================== */
+.horizontal-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+}
+
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-scroll > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ========================================================
+   Bottom Navigation (Mobile)
+   ======================================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  background: var(--bottom-nav-bg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 200ms ease, background 200ms ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.bottom-nav-item svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ========================================================
+   Price Badge
+   ======================================================== */
+.price-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.price-badge.free {
+  color: var(--success);
+}
+
+/* ========================================================
+   Stats Card (Admin)
+   ======================================================== */
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--neu-shadow-dark);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ========================================================
+   Transaction Feed
+   ======================================================== */
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  transition: background 200ms ease;
+}
+
+.transaction-item:hover {
+  background: var(--surface-hover);
+}
+
+.transaction-amount {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+/* ========================================================
+   Reader Dark Mode
+   ======================================================== */
+.reader-dark {
+  --reader-bg: #1a1625;
+  --reader-text: #e8e4f0;
+}
+
+.reader-dark .react-pdf__Page canvas {
+  filter: invert(0.88) hue-rotate(180deg);
+}
+
+/* ========================================================
+   Toast animations
+   ======================================================== */
+.toast-enter {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.toast-exit {
+  opacity: 0;
+  transform: translateY(12px) scale(0.95);
+  pointer-events: none;
+}
+
+/* ========================================================
+   Accordion
+   ======================================================== */
+.accordion-panel {
+  transition: max-height 250ms ease, opacity 200ms ease;
+  overflow: hidden;
+}
+
+.accordion-panel.closed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.accordion-panel.open {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* ========================================================
+   Keyframe Animations
+   ======================================================== */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 400px;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pageFlipForward {
+  0% {
+    opacity: 0.9;
+    transform: perspective(1400px) rotateY(-18deg) translateX(8px) scale(0.985);
+    transform-origin: left center;
+    filter: blur(0.8px);
+  }
+  55% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(6deg) translateX(-2px) scale(1.002);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0deg) translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes pageFlipBackward {
+  0% {
+    opacity: 0.9;
+    transform: perspective(1400px) rotateY(18deg) translateX(-8px) scale(0.985);
+    transform-origin: right center;
+    filter: blur(0.8px);
+  }
+  55% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(-6deg) translateX(2px) scale(1.002);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1400px) rotateY(0deg) translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+}
+
+/* --- Skeleton shimmer --- */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--input-bg) 25%,
+    var(--accent-soft) 50%,
+    var(--input-bg) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+
+/* --- Fade-in utility --- */
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+.animate-fade-scale {
+  animation: fadeScale 0.25s ease-out both;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out both;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.pdf-page-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.pdf-page-wrap > .react-pdf__Page {
+  max-width: 100%;
+}
+
+.pdf-page-wrap > .react-pdf__Page > canvas {
+  width: 100% !important;
+  height: auto !important;
+  border-radius: 0.875rem;
+}
+
+.pdf-page-flip-forward {
+  animation: pageFlipForward 420ms cubic-bezier(0.24, 0.64, 0.22, 1) both;
+}
+
+.pdf-page-flip-backward {
+  animation: pageFlipBackward 420ms cubic-bezier(0.24, 0.64, 0.22, 1) both;
+}
+
+/* ========================================================
+   Stagger Children Animation
+   ======================================================== */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+
+/* ========================================================
+   Mobile Performance Optimizations
+   ======================================================== */
+@media (max-width: 768px), (pointer: coarse) {
+  .neu-raised {
+    box-shadow: 0 1px 6px var(--neu-shadow-dark);
+  }
+
+  .neu-btn {
+    box-shadow: 0 1px 4px var(--neu-shadow-dark);
+  }
+
+  .neu-btn:hover:not(:disabled) {
+    transform: none;
+    box-shadow: 0 1px 4px var(--neu-shadow-dark);
+  }
+
+  .neu-card-hover:hover,
+  .premium-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px var(--neu-shadow-dark);
+  }
+
+  .glass-surface,
+  .glass-navbar {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .pdf-page-wrap > .react-pdf__Page > canvas {
+    border-radius: 0.75rem;
+  }
+
+  .pdf-page-flip-forward,
+  .pdf-page-flip-backward {
+    animation-duration: 320ms;
+  }
+
+  /* Reduce hero animation on mobile */
+  .hero-section {
+    animation-duration: 12s;
+  }
+}
+
+/* ========================================================
+   Accessibility: Reduced Motion
+   ======================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .neu-btn,
+  .neu-card-hover,
+  .premium-card,
+  .accordion-panel,
+  .skeleton-shimmer,
+  .animate-fade-in,
+  .animate-fade-scale,
+  .animate-slide-up,
+  .animate-float,
+  .hero-section,
+  .stagger-children > * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .pdf-page-wrap,
+  .pdf-page-flip-forward,
+  .pdf-page-flip-backward {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .stagger-children > * {
+    opacity: 1 !important;
+  }
+}
+
+/* ========================================================
+   Focus-visible global style
+   ======================================================== */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ========================================================
+   Scrollbar
+   ======================================================== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-soft);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* ========================================================
+   Utility: Line Clamp
+   ======================================================== */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
