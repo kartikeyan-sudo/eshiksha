@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import "@document-kits/viewer/viewer.css";
 import { ThemeInitializer } from "../components/layout/ThemeInitializer";
 import { GlobalLoader } from "../components/layout/GlobalLoader";
 

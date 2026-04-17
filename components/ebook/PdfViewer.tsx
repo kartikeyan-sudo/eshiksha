@@ -1,13 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createViewerApp } from "@document-kits/viewer";
 import { NeuButton } from "@/components/ui/NeuButton";
-import { addBookmark, addNote, deleteBookmark, deleteNote, getReadingProgress, listBookmarks, listNotes, updateReadingProgress } from "@/lib/api";
-import type { Bookmark, Note } from "@/lib/types";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 type PdfViewerProps = {
   ebookId: number;
@@ -19,416 +15,246 @@ type PdfViewerProps = {
   onUnlockRequest?: () => void;
 };
 
+type ViewerEventBus = {
+  on: (eventName: string, callback: (event: { pageNumber?: number; pagesCount?: number }) => void) => void;
+  off?: (eventName: string, callback: (event: { pageNumber?: number; pagesCount?: number }) => void) => void;
+};
+
+type ViewerInstance = {
+  initializedPromise?: Promise<unknown>;
+  eventBus?: ViewerEventBus;
+  page?: number;
+  pagesCount?: number;
+  close?: () => void;
+  cleanup?: () => void;
+  pdfViewer?: {
+    currentPageNumber?: number;
+    pagesCount?: number;
+  };
+};
+
+function getTotalPages(viewer: ViewerInstance): number {
+  return viewer.pagesCount || viewer.pdfViewer?.pagesCount || 0;
+}
+
+function getCurrentPage(viewer: ViewerInstance): number {
+  return viewer.page || viewer.pdfViewer?.currentPageNumber || 1;
+}
+
+function setCurrentPage(viewer: ViewerInstance, pageNumber: number) {
+  if (typeof viewer.page === "number") {
+    viewer.page = pageNumber;
+    return;
+  }
+
+  if (viewer.pdfViewer && typeof viewer.pdfViewer.currentPageNumber === "number") {
+    viewer.pdfViewer.currentPageNumber = pageNumber;
+  }
+}
+
 export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purchased, onUnlockRequest }: PdfViewerProps) {
   const router = useRouter();
-  const viewerPaneRef = useRef<HTMLDivElement | null>(null);
-  const [numPages, setNumPages] = useState(0);
+  const readerRef = useRef<HTMLDivElement | null>(null);
+  const viewerHostRef = useRef<HTMLDivElement | null>(null);
+  const viewerAppRef = useRef<ViewerInstance | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [resumePage, setResumePage] = useState(1);
-  const [pageWidth, setPageWidth] = useState(900);
-  const [pageTurnDirection, setPageTurnDirection] = useState<"forward" | "backward" | null>(null);
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [noteDraft, setNoteDraft] = useState("");
-  const [viewerMessage, setViewerMessage] = useState("");
-  const [readerDarkMode, setReaderDarkMode] = useState(true);
+  const [numPages, setNumPages] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showNotes, setShowNotes] = useState(true);
-  const [pageJump, setPageJump] = useState("");
-  const [showUI, setShowUI] = useState(true);
+  const [viewerMessage, setViewerMessage] = useState("");
 
-  const maxAllowedPage = useMemo(() => {
-    if (purchased) {
-      return numPages || 1;
-    }
-    return Math.max(1, previewPages);
-  }, [numPages, previewPages, purchased]);
-
-  const goNext = useCallback(() => {
-    if (pageNumber >= maxAllowedPage) return;
-    setPageTurnDirection("forward");
-    setPageNumber((current) => Math.min(current + 1, maxAllowedPage));
-  }, [pageNumber, maxAllowedPage]);
-
-  const goPrevious = useCallback(() => {
-    if (pageNumber <= 1) return;
-    setPageTurnDirection("backward");
-    setPageNumber((current) => Math.max(current - 1, 1));
-  }, [pageNumber]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-        e.preventDefault();
-        goNext();
-      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-        e.preventDefault();
-        goPrevious();
-      } else if (e.key === "f" || e.key === "F") {
-        e.preventDefault();
-        toggleFullscreen();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goNext, goPrevious]);
-
-  // Page jump handler
-  const onPageJump = () => {
-    const target = parseInt(pageJump, 10);
-    if (!Number.isNaN(target) && target >= 1 && target <= maxAllowedPage) {
-      setPageTurnDirection(target > pageNumber ? "forward" : "backward");
-      setPageNumber(target);
-      setPageJump("");
-    }
-  };
+  const sourceUrl = useMemo(() => fileUrl, [fileUrl]);
+  const maxAllowedPage = purchased ? numPages || 1 : Math.max(1, previewPages);
+  const showLockOverlay = !purchased && numPages > previewPages && pageNumber >= maxAllowedPage;
 
   const toggleFullscreen = () => {
-    const container = viewerPaneRef.current?.closest(".reader-container");
+    const container = readerRef.current;
     if (!container) return;
 
     if (!document.fullscreenElement) {
-      container.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
-    } else {
-      document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => {});
+      container.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => null);
+      return;
     }
+
+    document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => null);
   };
 
   useEffect(() => {
-    const onFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    const onFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
     document.addEventListener("fullscreenchange", onFsChange);
     return () => document.removeEventListener("fullscreenchange", onFsChange);
   }, []);
 
   useEffect(() => {
-    const container = viewerPaneRef.current;
-    if (!container) return;
+    const host = viewerHostRef.current;
+    if (!host || !sourceUrl) return;
 
-    const updatePageWidth = () => {
-      const nextWidth = Math.max(240, Math.floor(container.clientWidth - 16));
-      setPageWidth(Math.min(nextWidth, 940));
-    };
+    let disposed = false;
+    const controller = new AbortController();
+    let pageHandler: ((event: { pageNumber?: number }) => void) | undefined;
+    let pagesHandler: ((event: { pagesCount?: number }) => void) | undefined;
 
-    updatePageWidth();
-    const resizeObserver = new ResizeObserver(() => updatePageWidth());
-    resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
-  }, []);
+    setViewerMessage("");
+    setPageNumber(1);
+    setNumPages(0);
+    host.innerHTML = "";
 
-  useEffect(() => {
-    if (!pageTurnDirection) return;
-    const turnReset = window.setTimeout(() => setPageTurnDirection(null), 440);
-    return () => window.clearTimeout(turnReset);
-  }, [pageTurnDirection]);
+    const initializeViewer = async () => {
+      let source: string | ArrayBuffer = sourceUrl;
 
-  useEffect(() => {
-    if (!token) return;
-    let cancelled = false;
+      if (token) {
+        try {
+          const response = await fetch(sourceUrl, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            signal: controller.signal,
+          });
 
-    Promise.all([getReadingProgress(ebookId, token), listBookmarks(ebookId, token), listNotes(ebookId, token)])
-      .then(([progressResult, bookmarkResult, noteResult]) => {
-        if (cancelled) return;
-        setResumePage(Math.max(1, progressResult.progress.lastPage || 1));
-        setBookmarks(bookmarkResult);
-        setNotes(noteResult);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setViewerMessage("Could not load saved reading data.");
-      });
-
-    return () => { cancelled = true; };
-  }, [ebookId, token]);
-
-  useEffect(() => {
-    if (!token || numPages <= 0) return;
-
-    const saveTimer = window.setTimeout(() => {
-      updateReadingProgress(
-        {
-          ebookId,
-          lastPage: pageNumber,
-          progressPercent: maxAllowedPage > 0 ? Math.round((pageNumber / maxAllowedPage) * 100) : 0,
-        },
-        token,
-      ).catch(() => setViewerMessage("Could not save reading progress."));
-    }, 400);
-
-    return () => window.clearTimeout(saveTimer);
-  }, [ebookId, maxAllowedPage, numPages, pageNumber, token]);
-
-  const progressValue = maxAllowedPage > 0 ? Math.round((pageNumber / maxAllowedPage) * 100) : 0;
-  const showLockOverlay = !purchased && pageNumber >= maxAllowedPage;
-  const currentPageBookmark = bookmarks.find((bookmark) => bookmark.pageNumber === pageNumber);
-  const documentFile = useMemo(
-    () => ({
-      url: fileUrl,
-      httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
-    }),
-    [fileUrl, token],
-  );
-
-  const onToggleBookmark = async () => {
-    if (!token) {
-      setViewerMessage("Login required for bookmarks.");
-      return;
-    }
-
-    try {
-      if (currentPageBookmark) {
-        await deleteBookmark(currentPageBookmark.id, token);
-        setBookmarks((current) => current.filter((item) => item.id !== currentPageBookmark.id));
-        setViewerMessage(`Bookmark removed from page ${pageNumber}.`);
-        return;
+          if (response.ok) {
+            source = await response.arrayBuffer();
+          }
+        } catch {
+          source = sourceUrl;
+        }
       }
 
-      const created = await addBookmark({ ebookId, pageNumber }, token);
-      setBookmarks((current) => [...current.filter((item) => item.id !== created.bookmark.id), created.bookmark]);
-      setViewerMessage(`Bookmarked page ${pageNumber}.`);
-    } catch {
-      setViewerMessage("Could not update bookmark.");
-    }
-  };
+      if (disposed) return;
 
-  const appendSelectedTextToDraft = () => {
-    const selected = window.getSelection()?.toString().trim() || "";
-    if (!selected) {
-      setViewerMessage("Select text in the PDF first.");
-      return;
-    }
-    setNoteDraft((current) => (current ? `${current}\n\n${selected}` : selected));
-  };
+      const app = createViewerApp({
+        parent: host,
+        src: source,
+        resourcePath: "/document-viewer",
+        disableCORSCheck: true,
+        disableAutoSetTitle: true,
+        appOptions: {
+          defaultZoomValue: "page-width",
+          sidebarViewOnLoad: 0,
+        },
+      }) as ViewerInstance;
 
-  const onAddNote = async () => {
-    if (!token) { setViewerMessage("Login required for notes."); return; }
-    const content = noteDraft.trim();
-    if (!content) { setViewerMessage("Note cannot be empty."); return; }
+      viewerAppRef.current = app;
 
-    try {
-      const created = await addNote({ ebookId, pageNumber, content }, token);
-      setNotes((current) => [created.note, ...current]);
-      setNoteDraft("");
-      setViewerMessage("Note added.");
-    } catch {
-      setViewerMessage("Could not add note.");
-    }
-  };
+      pageHandler = (event) => {
+        if (disposed) return;
+        const nextPage = event.pageNumber || getCurrentPage(app);
+        const maxPreview = Math.max(1, previewPages);
 
-  const onDeleteNote = async (noteId: number) => {
-    if (!token) return;
-    try {
-      await deleteNote(noteId, token);
-      setNotes((current) => current.filter((note) => note.id !== noteId));
-      setViewerMessage("Note deleted.");
-    } catch {
-      setViewerMessage("Could not delete note.");
-    }
-  };
+        if (!purchased && nextPage > maxPreview) {
+          setCurrentPage(app, maxPreview);
+          setPageNumber(maxPreview);
+          setViewerMessage("Preview limit reached. Unlock the ebook to continue.");
+          onUnlockRequest?.();
+          return;
+        }
+
+        setPageNumber(nextPage);
+      };
+
+      pagesHandler = (event) => {
+        if (disposed) return;
+        const total = event.pagesCount || getTotalPages(app);
+        setNumPages(total);
+      };
+
+      app.eventBus?.on("pagechanging", pageHandler);
+      app.eventBus?.on("pagesloaded", pagesHandler);
+
+      app.initializedPromise
+        ?.then(() => {
+          if (disposed) return;
+          const total = getTotalPages(app);
+          setNumPages(total);
+
+          const maxPreview = Math.max(1, previewPages);
+          if (!purchased && getCurrentPage(app) > maxPreview) {
+            setCurrentPage(app, maxPreview);
+            setPageNumber(maxPreview);
+          } else {
+            setPageNumber(getCurrentPage(app));
+          }
+        })
+        .catch(() => {
+          if (disposed) return;
+          setViewerMessage("Could not initialize PDF viewer.");
+        });
+    };
+
+    initializeViewer().catch(() => {
+      if (disposed) return;
+      setViewerMessage("Could not load PDF viewer.");
+    });
+
+    return () => {
+      disposed = true;
+      controller.abort();
+      const app = viewerAppRef.current;
+
+      if (app && pageHandler) {
+        app.eventBus?.off?.("pagechanging", pageHandler);
+      }
+
+      if (app && pagesHandler) {
+        app.eventBus?.off?.("pagesloaded", pagesHandler);
+      }
+
+      app?.close?.();
+      app?.cleanup?.();
+      viewerAppRef.current = null;
+
+      if (host) {
+        host.innerHTML = "";
+      }
+    };
+  }, [sourceUrl, token, previewPages, purchased, onUnlockRequest]);
 
   return (
-    <div className={`reader-container space-y-4 ${readerDarkMode ? "reader-dark" : ""} ${isFullscreen ? "fixed inset-0 z-50 bg-[var(--reader-bg)] overflow-auto p-4" : ""}`}>
-      {/* Sticky Header */}
-      {showUI && (
-        <div className="sticky top-3 z-30 glass-surface rounded-2xl px-3 py-3 md:px-4 transition-opacity duration-300">
-          <div className="flex flex-wrap items-center gap-2 md:gap-3">
-            {/* Back */}
-            <NeuButton variant="ghost" className="text-xs" onClick={() => isFullscreen ? toggleFullscreen() : router.back()}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              Back
-            </NeuButton>
+    <section
+      ref={readerRef}
+      data-ebook-id={ebookId}
+      className={`space-y-3 ${isFullscreen ? "fixed inset-0 z-50 overflow-auto bg-[var(--reader-bg)] p-3 sm:p-4" : ""}`}
+    >
+      <div className="glass-surface flex flex-wrap items-center justify-between gap-2 rounded-2xl px-3 py-2 sm:px-4">
+        <NeuButton variant="ghost" className="text-xs" onClick={() => (isFullscreen ? toggleFullscreen() : router.back())}>
+          Back
+        </NeuButton>
 
-            {/* Title + Page info */}
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[var(--text-primary)]">{title || "Ebook Reader"}</p>
-              <p className="text-xs text-[var(--text-muted)]">Page {pageNumber} of {purchased ? numPages || 1 : maxAllowedPage} • {progressValue}%</p>
-            </div>
+        <p className="min-w-0 flex-1 truncate text-center text-xs font-semibold text-[var(--text-primary)] sm:text-sm">
+          {title || "Ebook Reader"}
+        </p>
 
-            {/* Progress bar */}
-            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--accent-soft)] md:w-32">
-              <div className="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style={{ width: `${progressValue}%` }} />
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-1">
-              {/* Page jump */}
-              <div className="hidden sm:flex items-center gap-1">
-                <input
-                  type="number"
-                  value={pageJump}
-                  onChange={(e) => setPageJump(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && onPageJump()}
-                  placeholder="Go to"
-                  min={1}
-                  max={maxAllowedPage}
-                  className="w-16 rounded-lg border border-[var(--glass-border)] bg-transparent px-2 py-1 text-xs text-[var(--text-primary)] text-center focus:outline-none focus:border-[var(--accent)]"
-                />
-              </div>
-
-              {/* Bookmark */}
-              <NeuButton variant="ghost" className="text-xs" onClick={onToggleBookmark}>
-                {currentPageBookmark ? "★" : "☆"}
-              </NeuButton>
-
-              {/* Dark Mode */}
-              <NeuButton variant="ghost" className="text-xs" onClick={() => setReaderDarkMode((p) => !p)}>
-                {readerDarkMode ? "☀️" : "🌙"}
-              </NeuButton>
-
-              {/* Notes toggle */}
-              <NeuButton variant="ghost" className="text-xs hidden lg:flex" onClick={() => setShowNotes((p) => !p)}>
-                📝
-              </NeuButton>
-
-              {/* Fullscreen */}
-              <NeuButton variant="ghost" className="text-xs" onClick={toggleFullscreen}>
-                {isFullscreen ? "⊠" : "⛶"}
-              </NeuButton>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={`grid gap-4 relative ${showNotes && showUI ? "lg:grid-cols-[1fr_300px]" : ""}`}>
-        {/* PDF Viewer */}
-        <div ref={viewerPaneRef} className="neu-raised relative overflow-hidden rounded-2xl p-2 sm:p-3 md:p-6" style={{ background: readerDarkMode ? "var(--reader-bg)" : undefined }}>
-          {/* Tap Zones for Page Turning & UI Toggle */}
-          <div className="absolute inset-0 z-20 flex" onClick={() => setShowUI(!showUI)}>
-            <div className="w-[30%] h-full" onClick={(e) => { e.stopPropagation(); goPrevious(); }} />
-            <div className="w-[40%] h-full flex-1" />
-            <div className="w-[30%] h-full" onClick={(e) => { e.stopPropagation(); goNext(); }} />
-          </div>
-          <Document
-            file={documentFile}
-            onLoadSuccess={({ numPages: loadedPages }) => {
-              setNumPages(loadedPages);
-              const allowedPage = purchased ? loadedPages : Math.max(1, previewPages);
-              setPageNumber(Math.min(Math.max(1, resumePage), allowedPage));
-            }}
-            loading={<div className="p-10 text-center text-sm text-[var(--text-muted)]">Loading PDF preview...</div>}
-            error={<div className="p-10 text-center text-sm text-[var(--danger)]">Could not load PDF.</div>}
-          >
-            <div
-              key={pageNumber}
-              className={`pdf-page-wrap ${
-                pageTurnDirection === "forward"
-                  ? "pdf-page-flip-forward"
-                  : pageTurnDirection === "backward"
-                    ? "pdf-page-flip-backward"
-                    : ""
-              }`}
-            >
-              <Page pageNumber={pageNumber} width={pageWidth} renderTextLayer renderAnnotationLayer={false} />
-            </div>
-          </Document>
-
-          {showLockOverlay ? (
-            <div className="absolute inset-x-6 bottom-6 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)]/95 p-4 shadow-lg backdrop-blur">
-              <p className="text-sm font-semibold text-[var(--text-primary)]">Preview limit reached</p>
-              <p className="mt-1 text-xs text-[var(--text-muted)]">Unlock full access to continue reading all pages.</p>
-              <NeuButton className="mt-3 text-xs" onClick={onUnlockRequest}>Unlock Full Ebook</NeuButton>
-            </div>
-          ) : null}
-        </div>
-
-        {/* Notes Sidebar */}
-        {showNotes && showUI && (
-          <aside className="glass-surface h-fit rounded-2xl p-4 animate-fade-in relative z-30">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">📝 Notes</h3>
-              <span className="text-xs text-[var(--text-muted)]">Page {pageNumber}</span>
-            </div>
-
-            {/* Bookmarks list */}
-            {bookmarks.length > 0 && (
-              <div className="mb-4">
-                <p className="text-xs font-semibold text-[var(--text-secondary)] mb-2">Bookmarks</p>
-                <div className="flex flex-wrap gap-1">
-                  {bookmarks.map((bm) => (
-                    <button
-                      key={bm.id}
-                      type="button"
-                      onClick={() => {
-                        setPageTurnDirection(bm.pageNumber > pageNumber ? "forward" : "backward");
-                        setPageNumber(bm.pageNumber);
-                      }}
-                      className={`rounded-lg px-2 py-1 text-xs font-medium transition-colors ${
-                        bm.pageNumber === pageNumber
-                          ? "bg-[var(--accent)] text-white"
-                          : "bg-[var(--accent-soft)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-white"
-                      }`}
-                    >
-                      p.{bm.pageNumber}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <textarea
-                value={noteDraft}
-                onChange={(event) => setNoteDraft(event.target.value)}
-                placeholder="Write a note for this page..."
-                className="neu-inset min-h-[80px] w-full rounded-xl px-3 py-2 text-sm text-[var(--text-primary)] outline-none resize-none"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <NeuButton variant="ghost" className="text-xs" onClick={appendSelectedTextToDraft}>
-                  Use Selection
-                </NeuButton>
-                <NeuButton className="text-xs" onClick={onAddNote}>
-                  Save Note
-                </NeuButton>
-              </div>
-            </div>
-
-            <div className="mt-4 space-y-2 max-h-64 overflow-y-auto">
-              {notes.length === 0 ? (
-                <p className="text-xs text-[var(--text-muted)]">No notes yet.</p>
-              ) : (
-                notes.map((note) => (
-                  <div key={note.id} className="neu-raised rounded-xl p-3">
-                    <div className="mb-1 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-[var(--text-secondary)]">Page {note.pageNumber}</span>
-                      <button type="button" onClick={() => onDeleteNote(note.id)} className="text-xs text-[var(--danger)] hover:underline">
-                        Delete
-                      </button>
-                    </div>
-                    <p className="text-xs leading-5 text-[var(--text-primary)] whitespace-pre-wrap">{note.content}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </aside>
-        )}
+        <NeuButton variant="ghost" className="text-xs" onClick={toggleFullscreen}>
+          {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+        </NeuButton>
       </div>
 
-      {/* Page Navigation Footer */}
-      {showUI && (
-        <div className="glass-surface flex items-center justify-between rounded-2xl p-3 relative z-30 transition-opacity duration-300">
-          <NeuButton variant="ghost" onClick={goPrevious} disabled={pageNumber <= 1}>
-            ← Previous
-          </NeuButton>
-          <p className="text-sm text-[var(--text-secondary)]">
-            Page {pageNumber} of {purchased ? numPages || 1 : maxAllowedPage}
-          </p>
-          <NeuButton variant="ghost" onClick={goNext} disabled={pageNumber >= maxAllowedPage}>
-            Next →
-          </NeuButton>
-        </div>
-      )}
+      <div className="neu-raised relative overflow-hidden rounded-2xl p-2 sm:p-3">
+        <div
+          ref={viewerHostRef}
+          className="reader-document-viewer h-[58vh] min-h-[420px] w-full sm:h-[70vh] lg:h-[76vh]"
+        />
 
-      {!purchased && numPages > previewPages ? (
-        <p className="text-center text-sm text-[var(--warning)]">
-          Preview mode active. Buy this ebook to unlock all {numPages} pages.
-        </p>
-      ) : null}
+        {showLockOverlay ? (
+          <div className="absolute inset-x-4 bottom-4 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)]/95 p-4 backdrop-blur sm:inset-x-6 sm:bottom-6">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">Preview limit reached</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Unlock full access to continue reading all pages.</p>
+            <NeuButton className="mt-3 text-xs" onClick={onUnlockRequest}>
+              Unlock Full Ebook
+            </NeuButton>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="glass-surface flex flex-wrap items-center justify-between gap-2 rounded-2xl p-3 text-xs text-[var(--text-secondary)] sm:text-sm">
+        <span>
+          Page {Math.min(pageNumber, maxAllowedPage)} of {maxAllowedPage}
+        </span>
+        {!purchased && numPages > previewPages ? <span className="text-[var(--warning)]">Preview mode active</span> : null}
+      </div>
 
       {viewerMessage ? <p className="text-center text-xs text-[var(--text-muted)]">{viewerMessage}</p> : null}
-    </div>
+    </section>
   );
 }
