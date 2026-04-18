@@ -362,16 +362,19 @@ router.get(
     }
 
     const purchaseResult = await pool.query(
-      "SELECT id FROM purchases WHERE user_id = $1 AND ebook_id = $2",
+      "SELECT id, status FROM purchases WHERE user_id = $1 AND ebook_id = $2",
       [req.user.id, ebookId],
     );
 
-    const hasAccess = purchaseResult.rowCount > 0 || ebookResult.rows[0].is_free;
+    const hasValidPurchase = purchaseResult.rowCount > 0 && purchaseResult.rows[0].status === 'completed';
+    const isPaymentReview = purchaseResult.rowCount > 0 && purchaseResult.rows[0].status === 'payment_review';
+    const hasAccess = hasValidPurchase || ebookResult.rows[0].is_free;
     const ebook = ebookResult.rows[0];
     const pdfUrl = `${req.protocol}://${req.get("host")}/api/ebooks/${ebookId}/stream`;
 
     return res.json({
       hasAccess,
+      isPaymentReview,
       previewPages: ebook.preview_pages,
       pdfUrl,
     });

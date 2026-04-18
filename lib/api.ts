@@ -169,6 +169,17 @@ export function verifyRazorpayPayment(id: string | number, payload: RazorpayVeri
   });
 }
 
+export function submitAlreadyPaid(id: string | number, token: string) {
+  return apiRequest<{ message: string; success: boolean }>(`/api/purchase/${id}/already-paid`, {
+    method: "POST",
+    token,
+  });
+}
+
+export function getPurchaseSettings() {
+  return apiRequest<{ allowAlreadyPaid: boolean }>("/api/purchase/settings");
+}
+
 // ═══════ Library ═══════
 
 export function listLibrary(token: string) {
@@ -424,9 +435,69 @@ export function deleteCategory(id: number, token: string) {
   });
 }
 
+// ═══════ PDF Export ═══════
+
+export async function downloadUsersExportPdf(token: string) {
+  const res = await fetch(`${API_BASE}/api/admin/users/export/pdf`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Failed to export PDF");
+
+  const blob = await res.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = downloadUrl;
+  a.download = "users_report.pdf";
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(downloadUrl);
+  document.body.removeChild(a);
+}
+
+export async function downloadUserSpecificExportPdf(userId: number, token: string) {
+  const res = await fetch(`${API_BASE}/api/admin/users/${userId}/export/pdf`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) throw new Error("Failed to export PDF");
+
+  const blob = await res.blob();
+  const downloadUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.style.display = "none";
+  a.href = downloadUrl;
+  a.download = `user_${userId}_report.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(downloadUrl);
+  document.body.removeChild(a);
+}
+
 // ═══════ Related Books ═══════
 
 export function listRelatedBooks(ebookId: number, _category?: string, limit = 4) {
   const safeLimit = Math.min(Math.max(limit, 1), 12);
   return apiRequest<Ebook[]>(`/api/ebooks/${ebookId}/related?limit=${safeLimit}`);
 }
+
+// ═══════ Admin Settings ═══════
+
+export function getAdminSettings(token: string) {
+  return apiRequest<{ allow_already_paid: boolean }>("/api/admin/settings", {
+    method: "GET",
+    token,
+  });
+}
+
+export function updateAdminSettings(token: string, allowAlreadyPaid: boolean) {
+  return apiRequest<{ message: string; settings: { allow_already_paid: boolean } }>("/api/admin/settings", {
+    method: "PATCH",
+    token,
+    body: JSON.stringify({ allow_already_paid: allowAlreadyPaid }),
+  });
+}
+

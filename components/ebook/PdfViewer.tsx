@@ -38,11 +38,11 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
   const [showUI, setShowUI] = useState(true);
 
   const maxAllowedPage = useMemo(() => {
-    if (purchased) {
-      return numPages || 1;
-    }
-    return Math.max(1, previewPages);
-  }, [numPages, previewPages, purchased]);
+    return numPages || 1;
+  }, [numPages]);
+
+  const maxPreviewPageNumber = Math.max(1, previewPages);
+  const isBlurred = !purchased && pageNumber > maxPreviewPageNumber;
 
   const goNext = useCallback(() => {
     if (pageNumber >= maxAllowedPage) return;
@@ -57,6 +57,17 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
   }, [pageNumber]);
 
   // Keyboard navigation
+  const toggleFullscreen = useCallback(() => {
+    const container = viewerPaneRef.current?.closest(".reader-container");
+    if (!container) return;
+
+    if (!document.fullscreenElement) {
+      container.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -74,7 +85,7 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [goNext, goPrevious]);
+  }, [goNext, goPrevious, toggleFullscreen]);
 
   // Page jump handler
   const onPageJump = () => {
@@ -83,17 +94,6 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
       setPageTurnDirection(target > pageNumber ? "forward" : "backward");
       setPageNumber(target);
       setPageJump("");
-    }
-  };
-
-  const toggleFullscreen = () => {
-    const container = viewerPaneRef.current?.closest(".reader-container");
-    if (!container) return;
-
-    if (!document.fullscreenElement) {
-      container.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
-    } else {
-      document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => {});
     }
   };
 
@@ -161,7 +161,7 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
   }, [ebookId, maxAllowedPage, numPages, pageNumber, token]);
 
   const progressValue = maxAllowedPage > 0 ? Math.round((pageNumber / maxAllowedPage) * 100) : 0;
-  const showLockOverlay = !purchased && pageNumber >= maxAllowedPage;
+  const showLockOverlay = isBlurred;
   const currentPageBookmark = bookmarks.find((bookmark) => bookmark.pageNumber === pageNumber);
   const documentFile = useMemo(
     () => ({
@@ -306,8 +306,7 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
             file={documentFile}
             onLoadSuccess={({ numPages: loadedPages }) => {
               setNumPages(loadedPages);
-              const allowedPage = purchased ? loadedPages : Math.max(1, previewPages);
-              setPageNumber(Math.min(Math.max(1, resumePage), allowedPage));
+              setPageNumber(Math.max(1, resumePage || Math.min(1, loadedPages)));
             }}
             loading={<div className="p-10 text-center text-sm text-[var(--text-muted)]">Loading PDF preview...</div>}
             error={<div className="p-10 text-center text-sm text-[var(--danger)]">Could not load PDF.</div>}
@@ -321,6 +320,13 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
                     ? "pdf-page-flip-backward"
                     : ""
               }`}
+              style={{
+                filter: isBlurred ? 'blur(8px)' : 'none',
+                userSelect: isBlurred ? 'none' : 'auto',
+                pointerEvents: isBlurred ? 'none' : 'auto',
+                opacity: isBlurred ? 0.7 : 1,
+                transition: 'filter 0.3s ease',
+              }}
             >
               <Page pageNumber={pageNumber} width={pageWidth} renderTextLayer renderAnnotationLayer={false} />
             </div>

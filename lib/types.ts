@@ -34,6 +34,7 @@ export type Ebook = {
 
 export type EbookAccess = {
   hasAccess: boolean;
+  isPaymentReview?: boolean;
   previewPages: number;
   pdfUrl: string;
 };
@@ -71,6 +72,7 @@ export type AdminUser = {
   role: UserRole;
   isBlocked: boolean;
   isActive: boolean;
+  purchasedBooks?: { id: number; title: string; price: string; date: string }[];
 };
 
 export type RecentTransaction = {

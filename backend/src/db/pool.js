@@ -140,6 +140,16 @@ async function initDatabase() {
     );
   `);
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS settings (
+      id SERIAL PRIMARY KEY,
+      key VARCHAR(255) UNIQUE NOT NULL,
+      value TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `);
+
   await pool.query("CREATE INDEX IF NOT EXISTS idx_reading_progress_user_id ON reading_progress(user_id)");
   await pool.query("CREATE INDEX IF NOT EXISTS idx_reading_progress_user_ebook ON reading_progress(user_id, ebook_id)");
   await pool.query("CREATE INDEX IF NOT EXISTS idx_bookmarks_user_ebook ON bookmarks(user_id, ebook_id)");

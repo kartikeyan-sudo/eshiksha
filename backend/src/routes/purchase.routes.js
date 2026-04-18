@@ -24,6 +24,17 @@ function ensureRazorpayConfigured(res) {
   return true;
 }
 
+router.get(
+  "/settings",
+  asyncHandler(async (req, res) => {
+    const result = await pool.query(
+      "SELECT value FROM settings WHERE key = 'allow_already_paid'"
+    );
+    const allowAlreadyPaid = result.rowCount > 0 && result.rows[0].value === "true";
+    res.json({ allowAlreadyPaid });
+  })
+);
+
 router.post(
   "/:ebookId/create-order",
   authenticate,
@@ -49,11 +60,18 @@ router.post(
     const ebook = ebookResult.rows[0];
 
     const purchaseResult = await pool.query(
-      "SELECT id FROM purchases WHERE user_id = $1 AND ebook_id = $2",
+      "SELECT id, status FROM purchases WHERE user_id = $1 AND ebook_id = $2",
       [req.user.id, ebookId],
     );
 
     if (purchaseResult.rowCount > 0) {
+      if (purchaseResult.rows[0].status === "payment_review") {
+        return res.json({
+          message: "Ebook payment is currently under review",
+          alreadyPurchased: false,
+          inReview: true,
+        });
+      }
       return res.json({
         message: "Ebook already purchased",
         alreadyPurchased: true,
@@ -123,6 +141,43 @@ router.post(
       },
     });
   }),
+);
+
+router.post(
+  "/:ebookId/already-paid",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const ebookId = Number(req.params.ebookId);
+    if (!Number.isInteger(ebookId)) {
+      return res.status(400).json({ message: "Invalid ebook id" });
+    }
+
+    const settingsResult = await pool.query(
+      "SELECT value FROM settings WHERE key = 'allow_already_paid'"
+    );
+    const allowAlreadyPaid = settingsResult.rowCount > 0 && settingsResult.rows[0].value === "true";
+    if (!allowAlreadyPaid) {
+      return res.status(403).json({ message: "Already paid feature disabled" });
+    }
+
+    const purchaseResult = await pool.query(
+      "SELECT id FROM purchases WHERE user_id = $1 AND ebook_id = $2",
+      [req.user.id, ebookId],
+    );
+
+    if (purchaseResult.rowCount > 0) {
+      return res.json({ message: "Ebook already purchased or in review", alreadyPurchased: true });
+    }
+
+    await pool.query(
+      `INSERT INTO purchases (user_id, ebook_id, status)
+       VALUES ($1, $2, 'payment_review')
+       ON CONFLICT (user_id, ebook_id) DO NOTHING`,
+      [req.user.id, ebookId],
+    );
+
+    return res.json({ message: "Payment in review", success: true });
+  })
 );
 
 router.post(

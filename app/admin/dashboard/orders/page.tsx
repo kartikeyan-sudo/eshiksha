@@ -6,17 +6,28 @@ import { NeuButton } from "@/components/ui/NeuButton";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { BackButton } from "@/components/ui/BackButton";
 import { getClientToken } from "@/lib/auth";
-import { deleteAdminOrder, listAdminOrders, updateOrderStatus } from "@/lib/api";
+import { deleteAdminOrder, listAdminOrders, updateOrderStatus, getAdminSettings, updateAdminSettings } from "@/lib/api";
 import type { AdminOrder } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
 
-const STATUS_OPTIONS = ["pending", "completed", "delivered"] as const;
+const STATUS_OPTIONS = ["pending", "payment_review", "completed", "delivered"] as const;
 const PAGE_SIZE = 10;
 
-function getStatusTone(status: string): "info" | "success" | "warning" {
+function getStatusTone(status: string): "info" | "success" | "warning" | "danger" {
   if (status === "completed") return "success";
   if (status === "delivered") return "info";
+  if (status === "payment_review") return "danger";
   return "warning";
+}
+
+function getStatusSelectClass(status: string) {
+  const tone = getStatusTone(status);
+  switch (tone) {
+    case "success": return "text-green-500 bg-green-500/10 border-green-500/20";
+    case "info": return "text-blue-500 bg-blue-500/10 border-blue-500/20";
+    case "danger": return "text-red-500 bg-red-500/10 border-red-500/20";
+    case "warning": default: return "text-amber-500 bg-amber-500/10 border-amber-500/20";
+  }
 }
 
 function formatDate(dateStr: string) {
@@ -41,6 +52,7 @@ export default function AdminOrdersPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [toast, setToast] = useState({ open: false, message: "", variant: "success" as "success" | "error" });
+  const [allowAlreadyPaid, setAllowAlreadyPaid] = useState<boolean | null>(null);
 
   const fetchOrders = useCallback(async () => {
     const token = getClientToken();
@@ -48,6 +60,9 @@ export default function AdminOrdersPage() {
 
     setLoading(true);
     try {
+      const settingsResult = await getAdminSettings(token);
+      setAllowAlreadyPaid(settingsResult.allow_already_paid);
+
       const result = await listAdminOrders(token, {
         status: filterStatus || undefined,
         q: searchQuery || undefined,
@@ -120,6 +135,19 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const onToggleAlreadyPaid = async () => {
+    const token = getClientToken();
+    if (!token || allowAlreadyPaid === null) return;
+    try {
+      const newValue = !allowAlreadyPaid;
+      await updateAdminSettings(token, newValue);
+      setAllowAlreadyPaid(newValue);
+      setToast({ open: true, message: `Already Paid option ${newValue ? 'enabled' : 'disabled'}`, variant: "success" });
+    } catch (error) {
+      setToast({ open: true, message: "Failed to update settings", variant: "error" });
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <BackButton />
@@ -129,6 +157,26 @@ export default function AdminOrdersPage() {
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">📦 Order Management</h1>
           <p className="text-sm text-[var(--text-muted)]">{total} orders</p>
         </div>
+
+        {allowAlreadyPaid !== null && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-[var(--text-primary)] cursor-pointer" onClick={onToggleAlreadyPaid}>
+              Allow "Already Paid" Requests
+            </span>
+            <button
+              onClick={onToggleAlreadyPaid}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                allowAlreadyPaid ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-700"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  allowAlreadyPaid ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+        )}
 
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           <input
@@ -194,10 +242,12 @@ export default function AdminOrdersPage() {
                           value={order.status}
                           onChange={(e) => onStatusChange(order.id, e.target.value as (typeof STATUS_OPTIONS)[number])}
                           disabled={updatingId === order.id || deletingId === order.id}
-                          className="rounded-lg border border-[var(--glass-border)] bg-transparent px-2 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${getStatusSelectClass(order.status)}`}
                         >
-                          {STATUS_OPTIONS.map((s) => (
-                            <option key={s} value={s}>{s}</option>
+                          {STATUS_OPTIONS.map((state) => (
+                            <option key={state} value={state} className="bg-[var(--surface-color)] text-[var(--text-primary)] font-medium">
+                              {state === "payment_review" ? "payment review" : state}
+                            </option>
                           ))}
                         </select>
                         <NeuButton

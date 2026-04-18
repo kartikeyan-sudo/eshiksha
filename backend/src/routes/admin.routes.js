@@ -5,7 +5,7 @@ const { authenticate, authorizeAdmin } = require("../middleware/auth");
 const { asyncHandler } = require("../utils/async-handler");
 
 const router = express.Router();
-const ORDER_STATUSES = new Set(["pending", "completed", "delivered"]);
+const ORDER_STATUSES = new Set(["pending", "payment_review", "completed", "delivered"]);
 const LOG_TABLES = {
   readingProgress: "reading_progress",
   bookmarks: "bookmarks",
@@ -15,10 +15,147 @@ const LOG_TABLES = {
 router.use(authenticate, authorizeAdmin);
 
 router.get(
+  "/settings",
+  asyncHandler(async (req, res) => {
+    const result = await pool.query("SELECT key, value FROM settings");
+    const settings = { allow_already_paid: false };
+    result.rows.forEach((r) => {
+      settings[r.key] = r.value === "true";
+    });
+    return res.json(settings);
+  }),
+);
+
+router.patch(
+  "/settings",
+  asyncHandler(async (req, res) => {
+    const { allow_already_paid } = req.body;
+    if (allow_already_paid !== undefined) {
+      await pool.query(
+        "INSERT INTO settings (key, value) VALUES ('allow_already_paid', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+        [String(allow_already_paid)],
+      );
+    }
+    return res.json({ message: "Settings updated successfully" });
+  }),
+);
+
+router.get(
+  "/users/export/pdf",
+  asyncHandler(async (req, res) => {
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="users_report.pdf"');
+
+    const doc = new PDFDocument({ margin: 50 });
+    doc.pipe(res);
+
+    doc.fontSize(20).text("E-Shiksha - Users Report", { align: "center" });
+    doc.moveDown();
+
+    const usersResult = await pool.query(
+      `SELECT u.id, u.email, u.is_blocked, u.is_active,
+       (
+         SELECT json_agg(json_build_object('title', e.title, 'price', e.price, 'date', p.created_at))
+         FROM purchases p
+         JOIN ebooks e ON p.ebook_id = e.id
+         WHERE p.user_id = u.id AND p.status = 'completed'
+       ) as purchased_books
+       FROM users u
+       WHERE u.role = 'user'
+       ORDER BY u.id DESC`
+    );
+
+    usersResult.rows.forEach((user, index) => {
+      doc.fontSize(14).fillColor("#2563eb").text(`User #${user.id}: ${user.email}`);
+      doc.fontSize(10).fillColor("#6b7280").text(`Status: ${user.is_blocked ? 'Blocked' : 'Active'}`);
+      
+      const books = user.purchased_books || [];
+      doc.fillColor("#000000").text(`Total Books Purchased: ${books.length}`);
+
+      if (books.length > 0) {
+        doc.moveDown(0.5);
+        books.forEach((b, i) => {
+          const dateStr = b.date ? new Date(b.date).toLocaleDateString() : 'N/A';
+          doc.text(`  ${i + 1}. ${b.title} (₹${b.price}) - ${dateStr}`);
+        });
+      }
+      
+      doc.moveDown();
+      if (index < usersResult.rows.length - 1) {
+        doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor("#e5e7eb").stroke();
+        doc.moveDown();
+      }
+    });
+
+    doc.end();
+  })
+);
+
+router.get(
+  "/users/:id/export/pdf",
+  asyncHandler(async (req, res) => {
+    const userId = Number(req.params.id);
+    if (!Number.isInteger(userId)) return res.status(400).json({ message: "Invalid user id" });
+
+    const userResult = await pool.query(
+      `SELECT u.id, u.email, u.is_blocked, u.is_active,
+       (
+         SELECT json_agg(json_build_object('title', e.title, 'price', e.price, 'date', p.created_at))
+         FROM purchases p
+         JOIN ebooks e ON p.ebook_id = e.id
+         WHERE p.user_id = u.id AND p.status = 'completed'
+       ) as purchased_books
+       FROM users u
+       WHERE u.id = $1`,
+      [userId]
+    );
+
+    if (userResult.rowCount === 0) return res.status(404).json({ message: "User not found" });
+    const user = userResult.rows[0];
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="user_${userId}_report.pdf"`);
+
+    const doc = new PDFDocument({ margin: 50 });
+    doc.pipe(res);
+
+    doc.fontSize(20).text(`E-Shiksha - Report for User #${user.id}`, { align: "center" });
+    doc.moveDown();
+
+    doc.fontSize(14).fillColor("#2563eb").text(`Email: ${user.email}`);
+    doc.fontSize(10).fillColor("#6b7280").text(`Role: User`);
+    doc.text(`Status: ${user.is_blocked ? 'Blocked' : 'Active'}`);
+    doc.moveDown();
+    
+    const books = user.purchased_books || [];
+    doc.fontSize(12).fillColor("#000000").text(`Total Books Purchased: ${books.length}`);
+
+    if (books.length > 0) {
+      doc.moveDown(0.5);
+      doc.fontSize(10);
+      books.forEach((b, i) => {
+        const dateStr = b.date ? new Date(b.date).toLocaleDateString() : 'N/A';
+        doc.text(`  ${i + 1}. ${b.title} (₹${b.price}) - ${dateStr}`);
+      });
+    }
+
+    doc.end();
+  })
+);
+
+router.get(
   "/users",
   asyncHandler(async (req, res) => {
     const result = await pool.query(
-      "SELECT id, email, role, is_blocked, is_active FROM users ORDER BY id DESC",
+      `SELECT u.id, u.email, u.role, u.is_blocked, u.is_active,
+       (
+         SELECT json_agg(json_build_object('id', e.id, 'title', e.title, 'price', e.price, 'date', p.created_at))
+         FROM purchases p
+         JOIN ebooks e ON p.ebook_id = e.id
+         WHERE p.user_id = u.id AND p.status = 'completed'
+       ) as purchased_books
+       FROM users u 
+       ORDER BY u.id DESC`
     );
 
     return res.json(
@@ -28,6 +165,7 @@ router.get(
         role: user.role,
         isBlocked: user.is_blocked,
         isActive: user.is_active,
+        purchasedBooks: user.purchased_books || [],
       })),
     );
   }),

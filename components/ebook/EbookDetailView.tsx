@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createRazorpayOrder, downloadEbookFile, getEbookAccess, listRelatedBooks, purchaseEbook, trackEbookView, verifyRazorpayPayment } from "@/lib/api";
+import { createRazorpayOrder, downloadEbookFile, getEbookAccess, listRelatedBooks, purchaseEbook, trackEbookView, verifyRazorpayPayment, getPurchaseSettings, submitAlreadyPaid } from "@/lib/api";
 import { getClientToken } from "@/lib/auth";
 import { NeuBadge } from "@/components/ui/NeuBadge";
 import { NeuButton } from "@/components/ui/NeuButton";
+import { NeuModal } from "@/components/ui/NeuModal";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { EbookRatingPanel } from "@/components/ebook/EbookRatingPanel";
 import { EbookCard } from "@/components/ebook/EbookCard";
@@ -108,8 +109,6 @@ function RatingStars({ rating }: { rating: number }) {
 
 export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const router = useRouter();
-  const [pdfUrl, setPdfUrl] = useState("");
-  const [viewerToken, setViewerToken] = useState<string | null>(null);
   const [hasAccess, setHasAccess] = useState(Boolean(ebook.hasPurchased || ebook.isFree));
   const [previewPages, setPreviewPages] = useState(ebook.previewPages);
   const [loadingAccess, setLoadingAccess] = useState(false);
@@ -119,14 +118,29 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [showToast, setShowToast] = useState(false);
   const [relatedBooks, setRelatedBooks] = useState<Ebook[]>([]);
+  const [allowAlreadyPaid, setAllowAlreadyPaid] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isPaymentReview, setIsPaymentReview] = useState(false);
 
   useEffect(() => {
     void trackEbookView(ebook.id).catch(() => null);
 
-    // Fetch related books
     listRelatedBooks(ebook.id, ebook.category)
       .then(setRelatedBooks)
       .catch(() => setRelatedBooks([]));
+
+    getPurchaseSettings()
+      .then((res) => setAllowAlreadyPaid(res.allowAlreadyPaid))
+      .catch(() => null);
+
+    const token = getClientToken();
+    if (token) {
+      getEbookAccess(ebook.id, token)
+        .then((access) => {
+          if (access.isPaymentReview) setIsPaymentReview(true);
+        })
+        .catch(() => null);
+    }
   }, [ebook.id, ebook.category]);
 
   const openReader = async () => {
@@ -139,24 +153,42 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       return;
     }
 
-    setLoadingAccess(true);
+    window.open(`/ebook/${ebook.id}/read`, '_blank');
+  };
 
+  const handleBuyClick = () => {
+    if (allowAlreadyPaid && !ebook.isFree) {
+      setShowPaymentModal(true);
+    } else {
+      buyNow();
+    }
+  };
+
+  const handleAlreadyPaid = async () => {
+    setShowPaymentModal(false);
+    const token = getClientToken();
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    setBuying(true);
     try {
-      const access = await getEbookAccess(ebook.id, token);
-      setPdfUrl(access.pdfUrl);
-      setViewerToken(token);
-      setHasAccess(access.hasAccess);
-      setPreviewPages(access.previewPages);
+      await submitAlreadyPaid(ebook.id, token);
+      setIsPaymentReview(true);
+      setToastVariant("success");
+      setMessage("Payment submitted for review.");
+      setShowToast(true);
     } catch (error) {
       setToastVariant("error");
-      setMessage(error instanceof Error ? error.message : "Could not open reader");
+      setMessage(error instanceof Error ? error.message : "Could not submit payment");
       setShowToast(true);
     } finally {
-      setLoadingAccess(false);
+      setBuying(false);
     }
   };
 
   const buyNow = async () => {
+    setShowPaymentModal(false);
     const token = getClientToken();
     if (!token) {
       setToastVariant("error");
@@ -172,8 +204,6 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       if (ebook.isFree) {
         await purchaseEbook(ebook.id, token);
         const access = await getEbookAccess(ebook.id, token);
-        setPdfUrl(access.pdfUrl);
-        setViewerToken(token);
         setHasAccess(access.hasAccess);
         setPreviewPages(access.previewPages);
         setToastVariant("success");
@@ -191,8 +221,6 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
 
       if (order.alreadyPurchased || order.isFree) {
         const accessResult = await getEbookAccess(ebook.id, token);
-        setPdfUrl(accessResult.pdfUrl);
-        setViewerToken(token);
         setHasAccess(accessResult.hasAccess);
         setPreviewPages(accessResult.previewPages);
         setToastVariant("success");
@@ -365,11 +393,12 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
             <div className="grid gap-3 sm:grid-cols-2 mt-2">
               {!hasAccess && (
                 <NeuButton 
-                  className="w-full py-4 text-base font-bold shadow-lg bg-[var(--accent)] text-white hover:scale-[1.02] transition-transform" 
-                  onClick={buyNow} 
+                  className={`w-full py-4 text-base font-bold shadow-lg transition-transform ${isPaymentReview ? 'bg-[var(--surface-raised)] text-[var(--text-muted)]' : 'bg-[var(--accent)] text-white hover:scale-[1.02]'}`} 
+                  onClick={isPaymentReview ? () => {} : handleBuyClick} 
                   loading={buying}
+                  disabled={isPaymentReview}
                 >
-                  Buy Now
+                  {isPaymentReview ? "Under Review" : "Buy Now"}
                 </NeuButton>
               )}
               
@@ -392,19 +421,6 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         </div>
       </section>
 
-      {/* PDF Viewer */}
-      {pdfUrl ? (
-        <PdfViewer
-          ebookId={ebook.id}
-          title={ebook.title}
-          fileUrl={pdfUrl}
-          token={viewerToken}
-          previewPages={previewPages}
-          purchased={hasAccess}
-          onUnlockRequest={buyNow}
-        />
-      ) : null}
-
       {/* Ratings */}
       <EbookRatingPanel ebookId={ebook.id} />
 
@@ -425,6 +441,19 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       )}
 
       <NeuToast message={message} open={showToast} variant={toastVariant} onClose={() => setShowToast(false)} />
+
+      <NeuModal open={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Select Payment Method">
+        <div className="flex flex-col gap-4 mt-4">
+          <NeuButton onClick={buyNow} className="w-full py-4 text-[var(--accent)] font-bold">
+            <span className="flex items-center gap-2 m-auto text-[var(--bg)]">
+              Proceed with Razorpay
+            </span>
+          </NeuButton>
+          <NeuButton variant="secondary" onClick={handleAlreadyPaid} className="w-full py-4 font-bold border border-[var(--border)] text-[var(--text-muted)]">
+            I have already paid
+          </NeuButton>
+        </div>
+      </NeuModal>
     </div>
   );
 }
