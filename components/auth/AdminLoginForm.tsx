@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginAdmin } from "@/lib/api";
 import { setClientAuth } from "@/lib/auth";
@@ -17,6 +17,10 @@ export function AdminLoginForm() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(false);
 
+  useEffect(() => {
+    router.prefetch("/admin/dashboard");
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -24,11 +28,7 @@ export function AdminLoginForm() {
     try {
       const response = await loginAdmin(email, password);
       setClientAuth(response.token, response.user.role);
-      setToastVariant("success");
-      setMessage("Admin authenticated. Redirecting...");
-      setToast(true);
       router.replace("/admin/dashboard");
-      router.refresh();
     } catch (error) {
       setToastVariant("error");
       setMessage(error instanceof Error ? error.message : "Admin login failed");

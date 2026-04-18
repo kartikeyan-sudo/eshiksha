@@ -30,15 +30,21 @@ export function EbookTable({ ebooks, onDeleted }: EbookTableProps) {
   };
 
   return (
-    <div className="neu-raised rounded-2xl overflow-hidden">
+    <div className="glass-surface rounded-2xl overflow-hidden">
       {/* Table Header */}
       <div className="border-b border-[var(--glass-border)] px-5 py-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">All Ebooks</h2>
         <span className="text-sm text-[var(--text-muted)]">{ebooks.length} items</span>
       </div>
 
+      {ebooks.length === 0 ? (
+        <div className="p-12 text-center">
+          <p className="text-sm text-[var(--text-muted)]">No ebooks available yet.</p>
+        </div>
+      ) : null}
+
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" hidden={ebooks.length === 0}>
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--glass-border)]">
@@ -62,10 +68,13 @@ export function EbookTable({ ebooks, onDeleted }: EbookTableProps) {
                   </div>
                 </td>
                 <td className="px-5 py-4 hidden sm:table-cell">
-                  <NeuBadge tone="info">Preview {ebook.previewPages}</NeuBadge>
+                  <div className="flex items-center gap-2">
+                    {ebook.category ? <NeuBadge tone="info">{ebook.category}</NeuBadge> : null}
+                    <NeuBadge tone="info">Preview {ebook.previewPages}</NeuBadge>
+                  </div>
                 </td>
                 <td className="px-5 py-4">
-                  <span className="font-semibold text-[var(--text-primary)]">{formatINR(ebook.price)}</span>
+                  <span className="font-semibold text-[var(--text-primary)]">{ebook.isFree ? "Free" : formatINR(ebook.price)}</span>
                 </td>
                 <td className="px-5 py-4 hidden md:table-cell">
                   <NeuBadge tone="success">Published</NeuBadge>

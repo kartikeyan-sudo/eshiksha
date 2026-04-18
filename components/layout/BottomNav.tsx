@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const bottomNavItems = [
   {
@@ -51,13 +52,27 @@ const bottomNavItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const syncHash = () => setHash(window.location.hash || "");
+    syncHash();
+    window.addEventListener("hashchange", syncHash);
+    return () => window.removeEventListener("hashchange", syncHash);
+  }, [pathname]);
+
+  const categoriesActive = pathname === "/" && hash === "#categories";
 
   return (
     <nav className="bottom-nav md:hidden" aria-label="Mobile navigation">
       {bottomNavItems.map((item) => {
-        const isActive = item.href === "/#categories"
-          ? pathname === "/"
-          : pathname === item.href;
+        const isHome = item.href === "/";
+        const isCategories = item.href === "/#categories";
+        const isActive = isCategories
+          ? categoriesActive
+          : isHome
+            ? pathname === "/" && !categoriesActive
+            : pathname === item.href;
 
         return (
           <Link

@@ -60,20 +60,25 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <div className="mb-6 flex items-center justify-between">
-        <BackButton />
-        <NeuButton 
-          variant="secondary"
-          onClick={handleDownloadReport}
-          loading={downloading}
-        >
-          <span className="flex items-center gap-2">
-            📄 Download Activity PDF
-          </span>
-        </NeuButton>
+    <div className="space-y-5 animate-fade-in">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">User Management</h1>
+          <p className="text-sm text-[var(--text-muted)]">Control user account status, access, and permissions.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <BackButton />
+          <NeuButton 
+            variant="secondary"
+            onClick={handleDownloadReport}
+            loading={downloading}
+          >
+            <span className="flex items-center gap-2">
+              📄 Download Activity PDF
+            </span>
+          </NeuButton>
+        </div>
       </div>
-
       <UserManagementTable users={users} onUpdated={loadUsers} />
 
       <NeuToast 

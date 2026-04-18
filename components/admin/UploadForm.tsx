@@ -78,8 +78,8 @@ export function UploadForm() {
 
   return (
     <>
-      <div className="neu-raised animate-fade-in rounded-2xl p-6 md:p-8">
-        <h1 className="mb-6 text-2xl font-bold text-[var(--text-primary)]">Upload Ebook</h1>
+      <div className="glass-surface animate-fade-in rounded-2xl p-6 md:p-8">
+        <h2 className="mb-6 text-xl font-bold text-[var(--text-primary)]">Ebook Upload Form</h2>
 
         <form
           className="space-y-5"
@@ -138,6 +138,7 @@ export function UploadForm() {
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              required
               className="neu-inset w-full rounded-xl px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] resize-none"
             />
           </div>

@@ -22,7 +22,7 @@ export default function AdminCategoriesPage() {
   const [savingId, setSavingId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
-  const [editIcon, setEditIcon] = useState("book");
+  const [editIcon, setEditIcon] = useState("📖");
   const [editDescription, setEditDescription] = useState("");
   const [toast, setToast] = useState({ open: false, message: "", variant: "success" as "success" | "error" });
 
@@ -81,14 +81,14 @@ export default function AdminCategoriesPage() {
   const onStartEdit = (category: Category) => {
     setEditingId(category.id);
     setEditName(category.name);
-    setEditIcon(category.icon || "book");
+    setEditIcon(category.icon || "📖");
     setEditDescription(category.description || "");
   };
 
   const onCancelEdit = () => {
     setEditingId(null);
     setEditName("");
-    setEditIcon("book");
+    setEditIcon("📖");
     setEditDescription("");
   };
 
@@ -209,7 +209,7 @@ export default function AdminCategoriesPage() {
                       onChange={(e) => setEditIcon(e.target.value)}
                       className="w-full rounded-lg border border-[var(--glass-border)] bg-transparent px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                     >
-                      <option value="book">book</option>
+                      <option value="📖">📖</option>
                       {ICON_OPTIONS.map((ic) => (
                         <option key={ic} value={ic}>{ic}</option>
                       ))}

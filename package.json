@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "node scripts/sync-document-viewer-assets.mjs",
     "backend:dev": "npm --prefix backend run dev",
     "backend:start": "npm --prefix backend run start"
   },
   "dependencies": {
+    "@document-kits/viewer": "^0.12.0-beta.0",
     "@embedpdf/react-pdf-viewer": "^2.14.0",
     "next": "16.2.3",
     "pdfjs-dist": "^4.10.38",

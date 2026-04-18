@@ -34,6 +34,10 @@ export function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   const onLogout = () => {
     clearClientAuth();
     setIsOpen(false);
@@ -41,8 +45,8 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 px-4 py-3 md:px-6">
-      <nav className="glass-navbar mx-auto w-full max-w-6xl rounded-2xl px-4 py-3 md:px-6" aria-label="Primary">
+    <header className="sticky top-0 z-40 px-3 pb-2 pt-3 md:px-6">
+      <nav className="glass-navbar relative mx-auto w-full max-w-6xl rounded-2xl px-4 py-3 md:px-6" aria-label="Primary">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -123,7 +127,7 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         {isOpen ? (
-          <div className="mt-3 space-y-1 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] p-3 md:hidden animate-fade-in">
+          <div className="animate-fade-in absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 space-y-1 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] p-3 shadow-lg md:hidden">
             {navLinks.map((item) => {
               const isActive = pathname === item.href;
               return (
