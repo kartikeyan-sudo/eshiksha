@@ -266,8 +266,6 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       });
 
       const access = await getEbookAccess(ebook.id, token);
-      setPdfUrl(access.pdfUrl);
-      setViewerToken(token);
       setHasAccess(access.hasAccess);
       setPreviewPages(access.previewPages);
       setToastVariant("success");

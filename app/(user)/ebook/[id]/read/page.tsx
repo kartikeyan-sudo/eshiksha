@@ -16,7 +16,9 @@ const PdfViewer = dynamic(() => import("@/components/ebook/PdfViewer").then((mod
 export default function EbookReadPage() {
   const params = useParams();
   const router = useRouter();
-  const ebookId = params.id as string;
+  const rawEbookId = params.id;
+  const ebookId = Array.isArray(rawEbookId) ? rawEbookId[0] : rawEbookId;
+  const ebookIdNumber = Number(ebookId);
   
   const [pdfUrl, setPdfUrl] = useState("");
   const [viewerToken, setViewerToken] = useState<string | null>(null);
@@ -29,6 +31,11 @@ export default function EbookReadPage() {
 
   useEffect(() => {
     const fetchEbookAccess = async () => {
+      if (!ebookId) {
+        setLoading(false);
+        return;
+      }
+
       const token = getClientToken();
       if (!token) {
         setToastVariant("error");
@@ -80,10 +87,24 @@ export default function EbookReadPage() {
     );
   }
 
+  if (!Number.isFinite(ebookIdNumber)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <div className="text-[var(--text-muted)]">Invalid ebook id</div>
+        <button
+          onClick={() => router.back()}
+          className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white font-semibold hover:bg-[var(--accent-hover)]"
+        >
+          Go back
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg)]">
       <PdfViewer
-        ebookId={ebookId}
+        ebookId={ebookIdNumber}
         title={`Ebook ${ebookId}`}
         fileUrl={pdfUrl}
         token={viewerToken}

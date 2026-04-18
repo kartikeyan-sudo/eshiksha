@@ -82,7 +82,7 @@ export type RecentTransaction = {
   createdAt: string;
 };
 
-export type OrderStatus = "pending" | "completed" | "delivered";
+export type OrderStatus = "pending" | "payment_review" | "completed" | "delivered";
 
 export type AdminDashboardStats = {
   totalUsers: number;
