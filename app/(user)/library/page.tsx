@@ -85,19 +85,34 @@ export default function LibraryPage() {
         {items.map((ebook) => {
           const progress = progressByEbook[ebook.id];
           return (
-            <div key={ebook.id} className="premium-card flex flex-col items-start gap-4 p-4 hover:border-[var(--accent)]">
+            <div key={ebook.id} className="premium-card flex flex-col items-start gap-3 p-4">
               <div className="flex gap-4 w-full">
-                <img src={ebook.coverUrl} alt="" className="h-24 w-16 rounded-md object-cover flex-shrink-0" loading="lazy" />
+                <img
+                  src={ebook.coverUrl}
+                  alt=""
+                  className="h-24 w-16 rounded-lg object-cover flex-shrink-0 shadow-sm"
+                  loading="lazy"
+                />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[var(--text-primary)] text-sm line-clamp-2">{ebook.title}</p>
+                  <Link href={`/ebook/${ebook.id}`}>
+                    <p className="font-semibold text-[var(--text-primary)] text-sm line-clamp-2 hover:text-[var(--accent)] transition-colors">
+                      {ebook.title}
+                    </p>
+                  </Link>
                   
                   {/* Progress Bar inside Card */}
                   <div className="mt-3 w-full">
                     <div className="h-1.5 w-full rounded-full bg-[var(--accent-soft)] overflow-hidden">
-                      <div className="h-full rounded-full bg-[var(--accent)] transition-all" style={{ width: `${progress?.progressPercent || 0}%` }} />
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${progress?.progressPercent || 0}%`,
+                          background: `linear-gradient(90deg, var(--accent), var(--accent-secondary))`,
+                        }}
+                      />
                     </div>
-                    <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-medium">
-                      {progress ? `${progress.progressPercent}% COMPLETED` : "NOT STARTED"}
+                    <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-semibold uppercase tracking-wider">
+                      {progress ? `${progress.progressPercent}% completed` : "Not started"}
                     </p>
                   </div>
                 </div>
@@ -105,7 +120,13 @@ export default function LibraryPage() {
               
               <div className="flex gap-2 w-full mt-auto">
                 <Link href={`/ebook/${ebook.id}`} className="flex-1">
-                  <NeuButton className="w-full text-xs font-semibold py-2">Resume Reading</NeuButton>
+                  <NeuButton className="w-full text-xs font-semibold py-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+                    </svg>
+                    Resume
+                  </NeuButton>
                 </Link>
                 <NeuButton
                   variant="secondary"
@@ -126,10 +147,10 @@ export default function LibraryPage() {
         })}
       </div>
     ) : (
-      <div className="glass-surface rounded-2xl p-12 text-center space-y-4">
+      <div className="empty-state">
         <span className="text-5xl">📚</span>
         <h2 className="text-xl font-semibold text-[var(--text-primary)]">No ebooks here yet</h2>
-        <p className="text-sm text-[var(--text-muted)]">Browse our catalog and keep reading to build progress.</p>
+        <p className="text-sm text-[var(--text-muted)] max-w-xs">Browse our catalog and keep reading to build progress.</p>
         <Link href="/">
           <NeuButton>Explore Ebooks</NeuButton>
         </Link>
@@ -162,11 +183,21 @@ export default function LibraryPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 pb-24 md:px-8 md:pb-8">
+    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 pb-24 md:px-8 md:pb-8 animate-fade-in">
+      {/* Page header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-[var(--text-primary)]">My Library</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]">My Library</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-1">{owned.length} ebook{owned.length !== 1 ? "s" : ""} in your collection</p>
+        </div>
         <Link href="/">
-          <NeuButton variant="secondary" className="text-xs">Browse More</NeuButton>
+          <NeuButton variant="secondary" className="text-xs gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg>
+            Browse More
+          </NeuButton>
         </Link>
       </div>
 
@@ -185,7 +216,10 @@ export default function LibraryPage() {
                 <h2 className="text-xl font-bold text-white mt-1">{continueReading.title}</h2>
                 <div className="flex items-center gap-2 mt-2">
                   <div className="h-2 w-32 rounded-full bg-white/20 overflow-hidden">
-                    <div className="h-full rounded-full bg-white transition-all" style={{ width: `${progressByEbook[continueReading.id]?.progressPercent || 0}%` }} />
+                    <div
+                      className="h-full rounded-full bg-white transition-all"
+                      style={{ width: `${progressByEbook[continueReading.id]?.progressPercent || 0}%` }}
+                    />
                   </div>
                   <span className="text-xs text-white/80">{progressByEbook[continueReading.id]?.progressPercent || 0}%</span>
                 </div>

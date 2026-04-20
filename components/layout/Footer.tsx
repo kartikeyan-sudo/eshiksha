@@ -21,7 +21,7 @@ const footerSections = [
 export function Footer() {
   return (
     <footer className="hidden px-4 pb-6 pt-10 md:block md:px-6">
-      <div className="glass-surface mx-auto w-full max-w-6xl rounded-2xl px-6 py-8">
+      <div className="glass-surface mx-auto w-full max-w-7xl rounded-2xl px-6 py-8">
         <div className="grid gap-8 md:grid-cols-3">
           {/* Brand */}
           <div className="space-y-3">

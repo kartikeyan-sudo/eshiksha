@@ -322,53 +322,66 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const hasRating = (ebook.averageRating || 0) > 0;
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Main Info Section */}
-      <section className="grid gap-6 lg:grid-cols-[340px_1fr]">
-        <div className="premium-card overflow-hidden">
-          <img src={ebook.coverUrl} alt={ebook.title} className="h-full w-full object-cover" />
+    <div className="space-y-10 animate-fade-in">
+      {/* ═══════ MAIN DETAIL SECTION ═══════ */}
+      <section className="ebook-detail-hero">
+        {/* Cover Image Container */}
+        <div className="ebook-detail-cover">
+          <div className="ebook-cover-wrapper">
+            <img
+              src={ebook.coverUrl}
+              alt={ebook.title}
+              className="ebook-cover-img"
+            />
+            {/* Floating badges on cover */}
+            <div className="ebook-cover-overlay">
+              {ebook.isFree ? (
+                <span className="ebook-price-float free">FREE</span>
+              ) : (
+                <span className="ebook-price-float">{formatINR(ebook.price)}</span>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="glass-surface rounded-2xl p-6 md:p-8">
-          {/* Badges */}
-          <div className="mb-4 flex flex-wrap items-center gap-2">
-            <NeuBadge tone={hasAccess ? "success" : "warning"}>{hasAccess ? "Purchased" : "Preview Mode"}</NeuBadge>
+        {/* Info Panel */}
+        <div className="ebook-detail-info">
+          {/* Status badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            <NeuBadge tone={hasAccess ? "success" : "warning"}>{hasAccess ? "✓ Purchased" : "Preview Mode"}</NeuBadge>
             {ebook.isFree && <NeuBadge tone="success">Free</NeuBadge>}
             {ebook.category && <NeuBadge tone="info">{ebook.category}</NeuBadge>}
-            <NeuBadge tone="info">{previewPages} preview pages</NeuBadge>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-[var(--text-primary)] leading-tight">{ebook.title}</h1>
+          <h1 className="ebook-detail-title">{ebook.title}</h1>
 
           {/* Rating */}
           {hasRating && (
-            <div className="mt-3 flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <RatingStars rating={ebook.averageRating || 0} />
               <span className="text-sm text-[var(--text-muted)]">
-                {(ebook.averageRating || 0).toFixed(1)} ({ebook.ratingsCount || 0} review{(ebook.ratingsCount || 0) !== 1 ? "s" : ""})
+                {(ebook.averageRating || 0).toFixed(1)} · {ebook.ratingsCount || 0} review{(ebook.ratingsCount || 0) !== 1 ? "s" : ""}
               </span>
             </div>
           )}
 
           {/* Description */}
-          <p className="mt-4 text-sm leading-7 text-[var(--text-secondary)]">{ebook.description}</p>
+          <p className="ebook-detail-desc">{ebook.description}</p>
 
           {/* Tags */}
           {ebook.tags && ebook.tags.length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {ebook.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-[var(--accent-soft)] px-2.5 py-1 text-xs font-medium text-[var(--accent)]">
-                  #{tag}
-                </span>
+                <span key={tag} className="ebook-tag">#{tag}</span>
               ))}
             </div>
           ) : null}
 
           {/* Stats row */}
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)]">
+          <div className="ebook-detail-stats">
             {ebook.viewsCount ? (
-              <span className="flex items-center gap-1">
+              <span className="ebook-stat-item">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                   <circle cx="12" cy="12" r="3" />
@@ -376,41 +389,67 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
                 {ebook.viewsCount} views
               </span>
             ) : null}
-            <span>{previewPages} preview pages</span>
+            <span className="ebook-stat-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+              {previewPages} preview pages
+            </span>
           </div>
 
+          {/* Divider */}
+          <div className="ebook-detail-divider" />
+
           {/* Price + Actions */}
-          <div className="mt-6 flex flex-col gap-4">
-            <div className="flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
-              <div>
-                <p className="text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider mb-1">Total Price</p>
-                <p className="text-4xl font-extrabold text-[var(--text-primary)]">{ebook.isFree ? "Free" : formatINR(ebook.price)}</p>
-              </div>
+          <div className="ebook-detail-actions">
+            <div className="ebook-price-section">
+              <span className="ebook-price-label">Price</span>
+              <span className="ebook-price-value">{ebook.isFree ? "Free" : formatINR(ebook.price)}</span>
             </div>
-            
-            <div className="grid gap-3 sm:grid-cols-2 mt-2">
+
+            <div className="ebook-action-buttons">
               {!hasAccess && (
                 <NeuButton 
-                  className={`w-full py-4 text-base font-bold shadow-lg transition-transform ${isPaymentReview ? 'bg-[var(--surface-raised)] text-[var(--text-muted)]' : 'bg-[var(--accent)] text-white hover:scale-[1.02]'}`} 
+                  className={`ebook-buy-btn ${isPaymentReview ? 'review-mode' : ''}`}
                   onClick={isPaymentReview ? () => {} : handleBuyClick} 
                   loading={buying}
                   disabled={isPaymentReview}
                 >
-                  {isPaymentReview ? "Under Review" : "Buy Now"}
+                  {isPaymentReview ? (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      Under Review
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+                      Buy Now
+                    </>
+                  )}
                 </NeuButton>
               )}
               
               <NeuButton 
                 variant={hasAccess ? "primary" : "secondary"} 
-                className={`w-full py-4 text-base font-bold ${hasAccess ? 'col-span-2' : ''}`}
+                className="ebook-read-btn"
                 onClick={openReader} 
                 loading={loadingAccess}
               >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+                  <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+                </svg>
                 {hasAccess ? "Read Full Ebook" : "Open Preview"}
               </NeuButton>
               
               {hasAccess && (
-                <NeuButton variant="secondary" className="w-full col-span-2 py-3" onClick={downloadEbook} loading={downloading}>
+                <NeuButton variant="secondary" className="ebook-download-btn" onClick={downloadEbook} loading={downloading}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
                   Download PDF
                 </NeuButton>
               )}
@@ -419,14 +458,14 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         </div>
       </section>
 
-      {/* Ratings */}
+      {/* ═══════ RATINGS ═══════ */}
       <EbookRatingPanel ebookId={ebook.id} />
 
-      {/* Related Books */}
+      {/* ═══════ RELATED BOOKS ═══════ */}
       {relatedBooks.length > 0 && (
-        <section className="space-y-4">
+        <section className="space-y-5">
           <h2 className="section-title">
-            <span>🔁</span> Related Books
+            <span>📚</span> You May Also Like
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {relatedBooks.map((item) => (
@@ -442,12 +481,14 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
 
       <NeuModal open={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Select Payment Method">
         <div className="flex flex-col gap-4 mt-4">
-          <NeuButton onClick={buyNow} className="w-full py-4 text-[var(--accent)] font-bold">
-            <span className="flex items-center gap-2 m-auto text-[var(--bg)]">
+          <NeuButton onClick={buyNow} className="w-full py-4 font-bold">
+            <span className="flex items-center gap-2 m-auto text-white">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
               Proceed with Razorpay
             </span>
           </NeuButton>
-          <NeuButton variant="secondary" onClick={handleAlreadyPaid} className="w-full py-4 font-bold border border-[var(--border)] text-[var(--text-muted)]">
+          <NeuButton variant="secondary" onClick={handleAlreadyPaid} className="w-full py-4 font-bold">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             I have already paid
           </NeuButton>
         </div>

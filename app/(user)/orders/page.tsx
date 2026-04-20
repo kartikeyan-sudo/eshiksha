@@ -35,32 +35,41 @@ export default function UserOrdersPage() {
   }, [router]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-8 pb-24 md:px-8 md:pb-8">
+    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 pb-24 md:px-8 md:pb-8 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text-primary)]">My Orders</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">Your purchase history</p>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
+            {loading ? "Loading..." : `${orders.length} purchase${orders.length !== 1 ? "s" : ""}`}
+          </p>
         </div>
         <Link href="/">
-          <NeuButton variant="secondary" className="text-xs">Browse Ebooks</NeuButton>
+          <NeuButton variant="secondary" className="text-xs gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+            </svg>
+            Browse Ebooks
+          </NeuButton>
         </Link>
       </div>
 
       {loading ? (
-        <div className="glass-surface rounded-2xl p-12 text-center text-sm text-[var(--text-muted)]">
-          Loading your orders...
+        <div className="glass-surface rounded-2xl p-12 text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-3 border-[var(--accent-soft)] border-t-[var(--accent)]" />
+          <p className="mt-4 text-sm text-[var(--text-muted)]">Loading your orders...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="glass-surface rounded-2xl p-12 text-center space-y-4">
+        <div className="empty-state">
           <span className="text-5xl">📦</span>
           <h2 className="text-xl font-semibold text-[var(--text-primary)]">No orders yet</h2>
-          <p className="text-sm text-[var(--text-muted)]">Start exploring ebooks and make your first purchase!</p>
+          <p className="text-sm text-[var(--text-muted)] max-w-xs">Start exploring ebooks and make your first purchase!</p>
           <Link href="/">
             <NeuButton>Browse Ebooks</NeuButton>
           </Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 stagger-children">
           {orders.map((order) => (
             <div
               key={order.id}
@@ -71,13 +80,13 @@ export default function UserOrdersPage() {
                   <img
                     src={order.coverUrl}
                     alt={order.ebookTitle}
-                    className="h-16 w-12 rounded-lg object-cover shadow-sm"
+                    className="h-16 w-12 rounded-lg object-cover shadow-sm flex-shrink-0"
                     loading="lazy"
                   />
                 )}
-                <div>
-                  <h3 className="font-semibold text-[var(--text-primary)]">{order.ebookTitle}</h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-[var(--text-primary)] line-clamp-1">{order.ebookTitle}</h3>
+                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
                     <span className="text-sm font-bold text-[var(--accent)]">{formatINR(order.amount)}</span>
                     <NeuBadge tone={getStatusTone(order.status)}>{order.status}</NeuBadge>
                   </div>
@@ -91,9 +100,15 @@ export default function UserOrdersPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <Link href={`/ebook/${order.ebookId}`}>
-                  <NeuButton variant="ghost" className="text-xs">Read</NeuButton>
+                  <NeuButton variant="secondary" className="text-xs gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
+                    </svg>
+                    Read
+                  </NeuButton>
                 </Link>
               </div>
             </div>

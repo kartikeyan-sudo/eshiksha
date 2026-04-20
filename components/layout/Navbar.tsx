@@ -46,7 +46,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 px-3 pb-2 pt-3 md:px-6">
-      <nav className="glass-navbar relative mx-auto w-full max-w-6xl rounded-2xl px-4 py-3 md:px-6" aria-label="Primary">
+      <nav className="glass-navbar relative mx-auto w-full max-w-7xl rounded-2xl px-5 py-3.5 md:px-8" aria-label="Primary">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
@@ -61,7 +61,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden items-center gap-1 md:flex">
+          <div className="hidden items-center gap-1.5 md:flex">
             {navLinks.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -84,7 +84,7 @@ export function Navbar() {
           </div>
 
           {/* Desktop Right */}
-          <div className="hidden items-center gap-3 md:flex">
+          <div className="hidden items-center gap-4 md:flex">
             <ThemeToggle />
             {authState.isAuthenticated ? (
               <div className="flex items-center gap-2">

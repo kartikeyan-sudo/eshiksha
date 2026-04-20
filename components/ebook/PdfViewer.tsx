@@ -415,7 +415,7 @@ export function PdfViewer({ ebookId, title, fileUrl, token, previewPages, purcha
 
       {/* Page Navigation Footer */}
       {showUI && (
-        <div className="glass-surface flex items-center justify-between rounded-2xl p-3 relative z-30 transition-opacity duration-300">
+        <div className="glass-surface flex items-center justify-between rounded-2xl p-3 mb-20 md:mb-0 relative z-30 transition-opacity duration-300">
           <NeuButton variant="ghost" onClick={goPrevious} disabled={pageNumber <= 1}>
             ← Previous
           </NeuButton>

@@ -65,11 +65,11 @@ export function EbookCard({ ebook, compact }: EbookCardProps) {
           </span>
         )}
 
-        {/* Price badge */}
+        {/* Price badge — fixed opacity syntax for Tailwind v4 */}
         <span className={`absolute top-3 right-3 rounded-lg px-2.5 py-1 text-xs font-bold backdrop-blur-sm ${
           isFree
-            ? "bg-[var(--success)]/90 text-white"
-            : "bg-white/90 text-[var(--accent)]"
+            ? "ebook-card-price-free"
+            : "ebook-card-price-paid"
         }`}>
           {isFree ? "FREE" : formatINR(ebook.price)}
         </span>

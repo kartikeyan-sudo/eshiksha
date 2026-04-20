@@ -161,7 +161,7 @@ export default function Home() {
       </section>
 
       {/* ═══════ SEARCH + FILTER BAR ═══════ */}
-      <section id="featured" className="space-y-4 animate-slide-up" style={{ animationDelay: "100ms" }}>
+      <section id="featured" className="space-y-4 animate-slide-up" style={{ animationDelay: "50ms" }}>
         <div className="flex items-center justify-between">
           <h2 className="section-title">
             <span>📖</span> Featured Ebooks
@@ -220,7 +220,7 @@ export default function Home() {
 
       {/* ═══════ TRENDING BOOKS ═══════ */}
       {trending.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "200ms" }}>
+        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "80ms" }}>
           <div className="section-header">
             <h2 className="section-title">
               <span>🔥</span> Trending Books
@@ -238,7 +238,7 @@ export default function Home() {
       )}
 
       {/* ═══════ CATEGORIES SECTION ═══════ */}
-      <section id="categories" className="space-y-4 animate-slide-up" style={{ animationDelay: "300ms" }}>
+      <section id="categories" className="space-y-4 animate-slide-up" style={{ animationDelay: "120ms" }}>
         <div className="section-header">
           <h2 className="section-title">
             <span>🏷️</span> Browse by Category
@@ -270,7 +270,7 @@ export default function Home() {
 
       {/* ═══════ NEW RELEASES ═══════ */}
       {newReleases.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "400ms" }}>
+        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "160ms" }}>
           <div className="section-header">
             <h2 className="section-title">
               <span>🆕</span> New Releases
@@ -288,7 +288,7 @@ export default function Home() {
 
       {/* ═══════ TOP RATED ═══════ */}
       {topRated.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "500ms" }}>
+        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "200ms" }}>
           <div className="section-header">
             <h2 className="section-title">
               <span>⭐</span> Top Rated

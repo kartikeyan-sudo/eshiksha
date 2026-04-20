@@ -20,7 +20,7 @@ function Stars({ value, onSelect }: { value: number; onSelect?: (value: number) 
             key={star}
             type="button"
             onClick={() => onSelect?.(star)}
-            className={`text-lg ${onSelect ? "cursor-pointer" : "cursor-default"} ${active ? "text-amber-500" : "text-[var(--text-muted)]"}`}
+            className={`text-xl transition-transform duration-150 ${onSelect ? "cursor-pointer hover:scale-125" : "cursor-default"} ${active ? "text-amber-500" : "text-[var(--text-muted)] opacity-40"}`}
             aria-label={`Rate ${star} star`}
           >
             ★
@@ -70,48 +70,68 @@ export function EbookRatingPanel({ ebookId }: EbookRatingPanelProps) {
   const topReviews = useMemo(() => summary?.reviews.slice(0, 3) || [], [summary]);
 
   return (
-    <section className="glass-surface rounded-2xl p-5">
+    <section className="glass-surface rounded-2xl p-6 space-y-5">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)]">Ratings and Reviews</h3>
-        <div className="flex items-center gap-2">
+        <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
+          <span className="text-xl">⭐</span>
+          Ratings & Reviews
+        </h3>
+        <div className="flex items-center gap-3">
           <Stars value={Math.round(summary?.averageRating || 0)} />
-          <span className="text-sm text-[var(--text-secondary)]">
-            {(summary?.averageRating || 0).toFixed(1)} ({summary?.totalRatings || 0})
+          <span className="text-sm font-semibold text-[var(--text-secondary)]">
+            {(summary?.averageRating || 0).toFixed(1)}
+          </span>
+          <span className="text-xs text-[var(--text-muted)]">
+            ({summary?.totalRatings || 0} ratings)
           </span>
         </div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] p-4">
-        <p className="text-sm font-medium text-[var(--text-primary)]">Rate this ebook</p>
-        <div className="mt-2">
-          <Stars value={myRating} onSelect={setMyRating} />
-        </div>
+      {/* Submit Rating */}
+      <div className="rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] p-5 space-y-3">
+        <p className="text-sm font-semibold text-[var(--text-primary)]">Rate this ebook</p>
+        <Stars value={myRating} onSelect={setMyRating} />
         <textarea
           value={review}
           onChange={(event) => setReview(event.target.value)}
-          placeholder="Share what was useful in this book"
+          placeholder="Share what was useful in this book..."
           rows={3}
-          className="mt-3 w-full rounded-xl border border-[var(--glass-border)] bg-transparent px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none"
+          className="w-full rounded-xl border border-[var(--glass-border)] bg-transparent px-4 py-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none transition-colors resize-none"
         />
         <button
           type="button"
           onClick={submit}
           disabled={saving || myRating < 1}
-          className="mt-3 rounded-xl bg-[var(--accent)] px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Submit rating"}
+          {saving ? (
+            <>
+              <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Saving...
+            </>
+          ) : (
+            "Submit Rating"
+          )}
         </button>
       </div>
 
+      {/* Reviews List */}
       {topReviews.length > 0 ? (
-        <div className="mt-4 space-y-2">
+        <div className="space-y-3">
+          <h4 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-wider">Recent Reviews</h4>
           {topReviews.map((item) => (
-            <article key={item.id} className="rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] p-3">
+            <article key={item.id} className="rounded-xl border border-[var(--glass-border)] bg-[var(--surface)] p-4 space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-medium text-[var(--text-secondary)]">{item.userEmail || "Reader"}</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-bold text-[var(--accent)]">
+                    {(item.userEmail || "R")[0].toUpperCase()}
+                  </div>
+                  <p className="text-xs font-medium text-[var(--text-secondary)]">{item.userEmail || "Reader"}</p>
+                </div>
                 <Stars value={item.rating} />
               </div>
-              {item.review ? <p className="mt-2 text-sm text-[var(--text-primary)]">{item.review}</p> : null}
+              {item.review ? <p className="text-sm text-[var(--text-primary)] leading-relaxed">{item.review}</p> : null}
             </article>
           ))}
         </div>
