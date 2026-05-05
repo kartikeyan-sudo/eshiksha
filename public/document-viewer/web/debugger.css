@@ -109,33 +109,3 @@
   background-color: rgb(255 255 255 / 0.6);
   color: rgb(0 0 0);
 }
-
-/* ========================================================
-   EShikhsha Debugger Responsiveness
-   ======================================================== */
-@media (max-width: 900px) {
-  :root {
-    --panel-width: min(88vw, 340px);
-  }
-
-  #PDFBug {
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 640px) {
-  #PDFBug {
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: auto;
-    width: 100vw;
-    height: 52vh;
-    border-inline: none;
-    border-top: none;
-  }
-
-  #PDFBug .panels {
-    inset: 27px 0 0;
-  }
-}
