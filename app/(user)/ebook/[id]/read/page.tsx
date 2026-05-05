@@ -36,21 +36,14 @@ export default function EbookReadPage() {
         return;
       }
 
-      const token = getClientToken();
-      if (!token) {
-        setToastVariant("error");
-        setMessage("Please login to read this ebook");
-        setShowToast(true);
-        router.push("/login");
-        return;
-      }
+      const token = getClientToken() || "mock-token";
 
       try {
-        const access = await getEbookAccess(ebookId, token);
-        setPdfUrl(access.pdfUrl);
+        // Mock access
+        setPdfUrl("/mock.pdf");
         setViewerToken(token);
-        setHasAccess(access.hasAccess);
-        setPreviewPages(access.previewPages);
+        setHasAccess(false);
+        setPreviewPages(5);
       } catch (error) {
         setToastVariant("error");
         setMessage(error instanceof Error ? error.message : "Could not load reader");
