@@ -126,6 +126,8 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const [showUpiModal, setShowUpiModal] = useState(false);
   const [upiDetails, setUpiDetails] = useState({ upiId: "", amount: 0 });
 
+  const [accessInfo, setAccessInfo] = useState<{ pdfUrl?: string; token?: string }>({});
+
   useEffect(() => {
     void trackEbookView(ebook.id).catch(() => null);
 
@@ -142,6 +144,9 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       getEbookAccess(ebook.id, token)
         .then((access) => {
           if (access.isPaymentReview) setIsPaymentReview(true);
+          if (access.pdfUrl) {
+            setAccessInfo({ pdfUrl: access.pdfUrl, token });
+          }
         })
         .catch(() => null);
     }
@@ -151,7 +156,7 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
     const token = getClientToken();
     if (!token) {
       setToastVariant("error");
-      setMessage("Please login to access preview");
+      setMessage("Please login to access protocol");
       setShowToast(true);
       router.push("/login");
       return;
@@ -204,6 +209,7 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         const access = await getEbookAccess(ebook.id, token);
         setHasAccess(access.hasAccess);
         setPreviewPages(access.previewPages);
+        if (access.pdfUrl) setAccessInfo({ pdfUrl: access.pdfUrl, token });
         setToastVariant("success");
         setMessage("Ebook unlocked.");
         setShowToast(true);
@@ -215,13 +221,13 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         throw new Error("Could not load payment gateway. Please try again.");
       }
 
-      // Request fresh order state from backend (respects real-time UPI/Razorpay toggle)
       const order = await createRazorpayOrder(ebook.id, token);
 
       if (order.alreadyPurchased || order.isFree) {
         const accessResult = await getEbookAccess(ebook.id, token);
         setHasAccess(accessResult.hasAccess);
         setPreviewPages(accessResult.previewPages);
+        if (accessResult.pdfUrl) setAccessInfo({ pdfUrl: accessResult.pdfUrl, token });
         setToastVariant("success");
         setMessage(order.message || "Access granted.");
         setShowToast(true);
@@ -276,11 +282,11 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       const access = await getEbookAccess(ebook.id, token);
       setHasAccess(access.hasAccess);
       setPreviewPages(access.previewPages);
+      if (access.pdfUrl) setAccessInfo({ pdfUrl: access.pdfUrl, token });
       setToastVariant("success");
       setMessage("Purchase successful. Full access granted.");
       setShowToast(true);
       
-      // Auto-open reader and scroll to it
       setTimeout(() => {
         window.scrollTo({
           top: document.body.scrollHeight,
@@ -330,12 +336,11 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const hasRating = (ebook.averageRating || 0) > 0;
 
   return (
-    <div className="space-y-10 animate-fade-in">
-      {/* ═══════ MAIN DETAIL SECTION ═══════ */}
+    <div className="space-y-16 animate-fade-in">
       {/* ═══════ PREMIUM MATTE DETAIL ═══════ */}
       <section className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
-        {/* Left: Cover */}
-        <div className="lg:col-span-5 xl:col-span-4 sticky top-24">
+        {/* Left: Cover (STATIC AS REQUESTED) */}
+        <div className="lg:col-span-5 xl:col-span-4">
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent)] to-transparent blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
             <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-[#0a0a0a] border border-white/10 shadow-2xl">
@@ -367,15 +372,15 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
               )}
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white uppercase">
               {ebook.title}
             </h1>
 
             {hasRating && (
               <div className="flex items-center gap-4 py-2">
                 <RatingStars rating={ebook.averageRating || 0} />
-                <span className="text-sm text-[var(--text-muted)] font-bold">
-                  {(ebook.averageRating || 0).toFixed(1)} PROTOCOL SCORE
+                <span className="text-sm text-[var(--text-muted)] font-bold uppercase">
+                  {(ebook.averageRating || 0).toFixed(1)} Protocol Score
                 </span>
               </div>
             )}
@@ -386,15 +391,15 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
           </p>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-             <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/5 transition-colors hover:border-white/10">
                 <div className="text-[10px] font-black text-[var(--text-muted)] uppercase mb-1">Views</div>
                 <div className="text-xl font-bold text-white">{ebook.viewsCount || 0}</div>
              </div>
-             <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/5 transition-colors hover:border-white/10">
                 <div className="text-[10px] font-black text-[var(--text-muted)] uppercase mb-1">Preview</div>
                 <div className="text-xl font-bold text-white">{previewPages} Pages</div>
              </div>
-             <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/5 transition-colors hover:border-white/10">
                 <div className="text-[10px] font-black text-[var(--text-muted)] uppercase mb-1">Access</div>
                 <div className="text-xl font-bold text-white">{hasAccess ? "Full" : "Limited"}</div>
              </div>
@@ -405,16 +410,16 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
               <button 
                 onClick={handleBuyClick}
                 disabled={isPaymentReview || buying}
-                className="w-full sm:flex-1 px-8 py-5 rounded-2xl bg-white text-black font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+                className="w-full sm:flex-1 px-8 py-5 rounded-2xl bg-white text-black font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale uppercase tracking-widest shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
               >
-                {isPaymentReview ? "UNDER REVIEW" : buying ? "PROCESSING..." : `UNLOCK — ${formatINR(ebook.price)}`}
+                {isPaymentReview ? "UNDER REVIEW" : buying ? "PROCESSING..." : `UNLOCK PROTOCOL — ${formatINR(ebook.price)}`}
               </button>
             )}
             
             <button 
               onClick={openReader}
-              className={`w-full sm:flex-1 px-8 py-5 rounded-2xl font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${
-                hasAccess ? "bg-white text-black" : "bg-white/5 border border-white/10 text-white"
+              className={`w-full sm:flex-1 px-8 py-5 rounded-2xl font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] uppercase tracking-widest ${
+                hasAccess ? "bg-white text-black shadow-[0_20px_40px_rgba(255,255,255,0.1)]" : "bg-white/5 border border-white/10 text-white"
               }`}
             >
               {hasAccess ? "OPEN READER" : "READ PREVIEW"}
@@ -423,15 +428,33 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         </div>
       </section>
 
+      {/* ═══════ PDF PREVIEW OVERVIEW ═══════ */}
+      {accessInfo.pdfUrl && (
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📑</span>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Technical Overview</h2>
+          </div>
+          <EmbedPdfPreview
+            fileUrl={accessInfo.pdfUrl}
+            title={ebook.title}
+            previewPages={previewPages}
+            token={accessInfo.token}
+            onUnlockRequest={handleBuyClick}
+          />
+        </section>
+      )}
+
       {/* ═══════ RATINGS ═══════ */}
       <EbookRatingPanel ebookId={ebook.id} />
 
       {/* ═══════ RELATED BOOKS ═══════ */}
       {relatedBooks.length > 0 && (
-        <section className="space-y-5">
-          <h2 className="section-title">
-            <span>📚</span> You May Also Like
-          </h2>
+        <section className="space-y-8">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📚</span>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tight">Sync Similar Data</h2>
+          </div>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {relatedBooks.map((item) => (
               <div key={item.id}>

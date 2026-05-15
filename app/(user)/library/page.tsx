@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EbookGrid } from "@/components/ebook/EbookGrid";
-import { NeuButton } from "@/components/ui/NeuButton";
-import { NeuTabs } from "@/components/ui/NeuTabs";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { downloadEbookFile, getCurrentUser, listEbooks, listLibrary, listReadingProgress } from "@/lib/api";
 import { getClientToken } from "@/lib/auth";
 import type { Ebook, ReadingProgress } from "@/lib/types";
+import { formatINR } from "@/lib/utils";
 
 export default function LibraryPage() {
   const router = useRouter();
@@ -20,6 +19,7 @@ export default function LibraryPage() {
   const [message, setMessage] = useState("");
   const [toastOpen, setToastOpen] = useState(false);
   const [toastVariant, setToastVariant] = useState<"success" | "error">("error");
+  const [activeTab, setActiveTab] = useState<"all" | "in-progress" | "completed" | "browse">("all");
 
   useEffect(() => {
     listEbooks().then(setAllEbooks).catch(() => setAllEbooks([]));
@@ -58,9 +58,7 @@ export default function LibraryPage() {
 
   const inProgress = owned.filter((ebook) => {
     const progress = progressByEbook[ebook.id];
-    if (!progress) {
-      return false;
-    }
+    if (!progress) return false;
     return progress.progressPercent > 0 && progress.progressPercent < 100;
   });
 
@@ -69,7 +67,6 @@ export default function LibraryPage() {
     return Boolean(progress && progress.progressPercent >= 100);
   });
 
-  // Most recently updated in-progress book
   const continueReading = inProgress.length > 0
     ? inProgress.reduce((latest, ebook) => {
         const latestProgress = progressByEbook[latest.id];
@@ -78,85 +75,6 @@ export default function LibraryPage() {
         return new Date(currentProgress.updatedAt) > new Date(latestProgress.updatedAt) ? ebook : latest;
       }, inProgress[0])
     : null;
-
-  const renderOwnedSection = (items: Ebook[]) => (
-    items.length > 0 ? (
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
-        {items.map((ebook) => {
-          const progress = progressByEbook[ebook.id];
-          return (
-            <div key={ebook.id} className="premium-card flex flex-col items-start gap-3 p-4">
-              <div className="flex gap-4 w-full">
-                <img
-                  src={ebook.coverUrl}
-                  alt=""
-                  className="h-24 w-16 rounded-lg object-cover flex-shrink-0 shadow-sm"
-                  loading="lazy"
-                />
-                <div className="flex-1 min-w-0">
-                  <Link href={`/ebook/${ebook.id}`}>
-                    <p className="font-semibold text-[var(--text-primary)] text-sm line-clamp-2 hover:text-[var(--accent)] transition-colors">
-                      {ebook.title}
-                    </p>
-                  </Link>
-                  
-                  {/* Progress Bar inside Card */}
-                  <div className="mt-3 w-full">
-                    <div className="h-1.5 w-full rounded-full bg-[var(--accent-soft)] overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: `${progress?.progressPercent || 0}%`,
-                          background: `linear-gradient(90deg, var(--accent), var(--accent-secondary))`,
-                        }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-[var(--text-muted)] mt-1.5 font-semibold uppercase tracking-wider">
-                      {progress ? `${progress.progressPercent}% completed` : "Not started"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex gap-2 w-full mt-auto">
-                <Link href={`/ebook/${ebook.id}`} className="flex-1">
-                  <NeuButton className="w-full text-xs font-semibold py-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-                    </svg>
-                    Resume
-                  </NeuButton>
-                </Link>
-                <NeuButton
-                  variant="secondary"
-                  className="px-3"
-                  onClick={() => onDownload(ebook.id)}
-                  loading={downloadingId === ebook.id}
-                  aria-label="Download PDF"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                </NeuButton>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    ) : (
-      <div className="empty-state">
-        <span className="text-5xl">📚</span>
-        <h2 className="text-xl font-semibold text-[var(--text-primary)]">No ebooks here yet</h2>
-        <p className="text-sm text-[var(--text-muted)] max-w-xs">Browse our catalog and keep reading to build progress.</p>
-        <Link href="/">
-          <NeuButton>Explore Ebooks</NeuButton>
-        </Link>
-      </div>
-    )
-  );
 
   const onDownload = async (ebookId: number) => {
     const token = getClientToken();
@@ -182,78 +100,139 @@ export default function LibraryPage() {
     }
   };
 
+  const getFilteredItems = () => {
+    switch (activeTab) {
+      case "in-progress": return inProgress;
+      case "completed": return completed;
+      case "browse": return allEbooks;
+      default: return owned;
+    }
+  };
+
+  const filteredItems = getFilteredItems();
+
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 pb-24 md:px-8 md:pb-8 animate-fade-in">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">My Library</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">{owned.length} ebook{owned.length !== 1 ? "s" : ""} in your collection</p>
+    <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 pb-24 md:px-8 md:pb-8 animate-fade-in">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[var(--accent)]/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="relative z-10 space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-[var(--accent)] uppercase tracking-widest">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+            Active Collection
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase">My Vault</h1>
+          <p className="text-sm md:text-base text-[var(--text-muted)] font-medium max-w-md uppercase tracking-tight">
+            {owned.length} Protocol{owned.length !== 1 ? "s" : ""} securely synchronized to your profile.
+          </p>
         </div>
-        <Link href="/">
-          <NeuButton variant="secondary" className="text-xs gap-1.5">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            Browse More
-          </NeuButton>
-        </Link>
       </div>
 
-      {/* Continue Reading Banner */}
+      {/* Continue Reading */}
       {continueReading && (
-        <section className="hero-section p-6 md:p-8 animate-fade-in">
-          <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <img
-                src={continueReading.coverUrl}
-                alt={continueReading.title}
-                className="h-20 w-14 rounded-lg object-cover shadow-lg border-2 border-white/20"
-              />
-              <div>
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Continue Reading</p>
-                <h2 className="text-xl font-bold text-white mt-1">{continueReading.title}</h2>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="h-2 w-32 rounded-full bg-white/20 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-white transition-all"
-                      style={{ width: `${progressByEbook[continueReading.id]?.progressPercent || 0}%` }}
-                    />
+        <div className="group relative overflow-hidden rounded-3xl bg-white p-6 md:p-8 transition-all hover:scale-[1.01] active:scale-[0.99] cursor-pointer" onClick={() => router.push(`/ebook/${continueReading.id}`)}>
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <img src={continueReading.coverUrl} className="h-24 w-18 md:h-32 md:w-24 rounded-xl object-cover shadow-2xl" />
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-black/40 uppercase tracking-widest">Resume Learning</p>
+                <h2 className="text-2xl md:text-3xl font-black text-black tracking-tight uppercase line-clamp-1">{continueReading.title}</h2>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="h-2 w-32 md:w-48 rounded-full bg-black/10 overflow-hidden">
+                    <div className="h-full bg-black transition-all" style={{ width: `${progressByEbook[continueReading.id]?.progressPercent || 0}%` }} />
                   </div>
-                  <span className="text-xs text-white/80">{progressByEbook[continueReading.id]?.progressPercent || 0}%</span>
+                  <span className="text-xs font-black text-black">{progressByEbook[continueReading.id]?.progressPercent || 0}%</span>
                 </div>
               </div>
             </div>
-            <Link href={`/ebook/${continueReading.id}`}>
-              <button className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-[var(--accent)] shadow-lg transition-transform hover:scale-105">
-                Resume Reading →
-              </button>
-            </Link>
+            <button className="px-8 py-4 rounded-2xl bg-black text-white font-black text-sm uppercase tracking-widest">Continue →</button>
           </div>
-        </section>
+        </div>
       )}
 
-      <NeuTabs
-        tabs={[
-          {
-            label: `All (${owned.length})`,
-            content: renderOwnedSection(owned),
-          },
-          {
-            label: `In Progress (${inProgress.length})`,
-            content: renderOwnedSection(inProgress),
-          },
-          {
-            label: `Completed (${completed.length})`,
-            content: renderOwnedSection(completed),
-          },
-          {
-            label: `Browse (${allEbooks.length})`,
-            content: <EbookGrid items={allEbooks} />,
-          },
-        ]}
-      />
+      {/* Tabs */}
+      <div className="space-y-8">
+        <div className="flex flex-wrap gap-2 md:gap-4">
+          {[
+            { id: "all", label: `All Protocols (${owned.length})` },
+            { id: "in-progress", label: `Active (${inProgress.length})` },
+            { id: "completed", label: `Verified (${completed.length})` },
+            { id: "browse", label: `Marketplace (${allEbooks.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-6 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all ${
+                activeTab === tab.id ? "bg-white text-black" : "bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "browse" ? (
+          <EbookGrid items={allEbooks} />
+        ) : filteredItems.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredItems.map((ebook) => {
+              const progress = progressByEbook[ebook.id];
+              return (
+                <div key={ebook.id} className="relative group flex flex-col bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden transition-all duration-300 hover:border-[var(--accent)] hover:shadow-[0_0_30px_rgba(99,102,241,0.1)]">
+                  <div className="relative aspect-[3/4] overflow-hidden">
+                    <img src={ebook.coverUrl} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      <span className="px-2 py-1 rounded-md bg-black/60 text-[8px] font-black text-white uppercase tracking-widest backdrop-blur-md border border-white/10">
+                        {ebook.category || "General"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-5 space-y-4">
+                    <h3 className="font-black text-white text-sm uppercase tracking-tight line-clamp-1">{ebook.title}</h3>
+                    
+                    <div className="space-y-1.5">
+                      <div className="h-1 w-full rounded-full bg-white/5 overflow-hidden">
+                        <div className="h-full bg-[var(--accent)]" style={{ width: `${progress?.progressPercent || 0}%` }} />
+                      </div>
+                      <div className="flex justify-between text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">
+                        <span>{progress?.progressPercent || 0}% Complete</span>
+                        {progress?.lastPage && <span>Page {progress.lastPage}</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Link href={`/ebook/${ebook.id}`} className="flex-1">
+                        <button className="w-full py-2.5 rounded-xl bg-white/5 text-white font-black text-[9px] uppercase tracking-widest hover:bg-white/10 transition-all">Read</button>
+                      </Link>
+                      <button 
+                        onClick={() => onDownload(ebook.id)} 
+                        disabled={downloadingId === ebook.id}
+                        className="p-2.5 rounded-xl bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-50"
+                      >
+                        {downloadingId === ebook.id ? (
+                          <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
+            <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-3xl">🗄️</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black text-white uppercase tracking-tight">Vault Empty</h2>
+              <p className="text-sm text-[var(--text-muted)] max-w-xs uppercase font-medium">You haven't added any protocols to this section yet.</p>
+            </div>
+            <button onClick={() => setActiveTab("browse")} className="px-8 py-4 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest">Explore Marketplace</button>
+          </div>
+        )}
+      </div>
 
       <NeuToast message={message} open={toastOpen} variant={toastVariant} onClose={() => setToastOpen(false)} />
     </div>
