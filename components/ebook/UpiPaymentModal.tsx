@@ -62,54 +62,52 @@ export function UpiPaymentModal({
   };
 
   return (
-    <NeuModal open={open} onClose={onClose} title="Pay via UPI">
-      <div className="space-y-6 mt-4">
+    <NeuModal open={open} onClose={onClose} title="UPI PROTOCOL">
+      <div className="space-y-6 mt-4 max-h-[80vh] overflow-y-auto px-1">
         {/* Timer */}
-        <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-[var(--danger)]/10 text-[var(--danger)] text-sm font-bold w-fit mx-auto">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <div className="flex items-center justify-center gap-2 py-2 px-4 rounded-full bg-[var(--danger)]/10 text-[var(--danger)] text-[10px] md:text-xs font-bold w-fit mx-auto uppercase tracking-widest">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          Session expires in: {formatTime(timeLeft)}
+          EXPIRES IN: {formatTime(timeLeft)}
         </div>
 
         {/* QR Code */}
-        <div className="flex flex-col items-center justify-center p-6 glass-surface rounded-2xl border-2 border-[var(--accent)]/30">
-          <img src={qrUrl} alt="UPI QR Code" className="w-48 h-48 rounded-lg shadow-xl mb-4 bg-white p-2" />
-          <p className="text-sm font-bold text-[var(--text-primary)]">{formatINR(amount)}</p>
-          <p className="text-xs text-[var(--text-muted)] mt-1">{upiId}</p>
+        <div className="flex flex-col items-center justify-center p-4 md:p-6 glass-surface rounded-2xl border border-white/10">
+          <div className="relative group">
+            <div className="absolute -inset-2 bg-[var(--accent)]/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <img src={qrUrl} alt="UPI QR Code" className="relative w-32 h-32 md:w-48 md:h-48 rounded-lg shadow-2xl bg-white p-2" />
+          </div>
+          <p className="text-lg md:text-xl font-black text-white mt-4 tracking-tighter">{formatINR(amount)}</p>
+          <code className="text-[10px] text-[var(--text-muted)] mt-1 font-mono uppercase bg-white/5 px-2 py-1 rounded">{upiId}</code>
         </div>
 
         {/* Instructions */}
         <div className="text-center space-y-1">
-          <p className="text-sm text-[var(--text-primary)] font-medium">Scan the QR code to pay</p>
-          <p className="text-xs text-[var(--text-muted)]">After payment, enter your 12-digit UTR number below</p>
+          <p className="text-xs md:text-sm text-white font-black uppercase tracking-tighter">Scan to Initiate Protocol</p>
+          <p className="text-[10px] text-[var(--text-muted)] font-medium leading-tight">After payment, input your 12-digit UTR number for manual verification.</p>
         </div>
 
         {/* UTR Input */}
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-[var(--text-secondary)] ml-1 uppercase tracking-wider">UTR Number / Transaction ID</label>
+          <label className="text-[9px] font-black text-[var(--text-muted)] ml-1 uppercase tracking-[0.2em]">UTR / TRANSACTION ID</label>
           <input
             type="text"
-            placeholder="Enter 12-digit UTR"
+            placeholder="0000 0000 0000"
             value={utr}
             onChange={(e) => setUtr(e.target.value.replace(/\D/g, "").slice(0, 12))}
-            className="w-full rounded-xl border border-[var(--glass-border)] bg-transparent px-4 py-3 text-center text-lg font-bold tracking-[0.2em] text-[var(--text-primary)] focus:border-[var(--accent)] focus:outline-none transition-all placeholder:text-[var(--text-muted)]/30 placeholder:tracking-normal placeholder:font-normal"
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-4 text-center text-lg md:text-xl font-black tracking-[0.3em] text-white focus:border-[var(--accent)] focus:outline-none transition-all placeholder:text-white/10 placeholder:tracking-normal"
           />
         </div>
 
-        <NeuButton
+        <button
           onClick={handleSubmit}
-          loading={loading}
-          disabled={utr.length < 6}
-          className="w-full py-4 font-bold"
+          disabled={loading || utr.length < 6}
+          className="w-full py-5 rounded-2xl bg-white text-black font-black text-xs md:text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
         >
-          Submit Payment Details
-        </NeuButton>
-
-        <p className="text-[10px] text-center text-[var(--text-muted)] px-4">
-          By clicking submit, you agree that your payment will be manually verified by our team. Access will be granted once verification is complete.
-        </p>
+          {loading ? "VERIFYING..." : "SUBMIT PROTOCOL"}
+        </button>
       </div>
     </NeuModal>
   );

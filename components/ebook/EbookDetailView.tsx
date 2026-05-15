@@ -400,20 +400,20 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
              </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4">
             {!hasAccess && (
               <button 
                 onClick={handleBuyClick}
                 disabled={isPaymentReview || buying}
-                className="flex-1 px-8 py-5 rounded-2xl bg-white text-black font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+                className="w-full sm:flex-1 px-8 py-5 rounded-2xl bg-white text-black font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
               >
-                {isPaymentReview ? "UNDER REVIEW" : buying ? "PROCESSING..." : `UNLOCK PROTOCOL — ${formatINR(ebook.price)}`}
+                {isPaymentReview ? "UNDER REVIEW" : buying ? "PROCESSING..." : `UNLOCK — ${formatINR(ebook.price)}`}
               </button>
             )}
             
             <button 
               onClick={openReader}
-              className={`flex-1 px-8 py-5 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${
+              className={`w-full sm:flex-1 px-8 py-5 rounded-2xl font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${
                 hasAccess ? "bg-white text-black" : "bg-white/5 border border-white/10 text-white"
               }`}
             >
