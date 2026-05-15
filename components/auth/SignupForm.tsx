@@ -34,7 +34,7 @@ export function SignupForm() {
       const response = await registerUser(email, password);
       setClientAuth(response.token, response.user.role);
       setToastVariant("success");
-      setMessage("Account created successfully");
+      setMessage("Account established.");
       setToast(true);
       router.replace("/");
     } catch (error) {
@@ -48,21 +48,18 @@ export function SignupForm() {
 
   return (
     <>
-      <div className="glass-surface animate-fade-in w-full max-w-md rounded-2xl p-8 mx-auto">
+      <div className="brutalist-card animate-fade-in w-full max-w-md p-8 md:p-12 mx-auto space-y-10 bg-white">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent)] text-white text-xl font-bold shadow-lg">
-            ES
-          </div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Create Account</h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">Join EShikhsha and start learning</p>
+        <div className="text-center space-y-2">
+           <h1 className="text-5xl font-['Anton'] uppercase tracking-tighter">Registration</h1>
+           <p className="font-['Bebas_Neue'] text-xl text-gray-500 uppercase tracking-widest">Enlist in the Protocol</p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-8" onSubmit={handleSubmit}>
           <NeuInput
             type="email"
-            label="Email Address"
-            placeholder="you@example.com"
+            label="Email Identifier"
+            placeholder="AGENT@DOMAIN.COM"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
@@ -70,8 +67,8 @@ export function SignupForm() {
           />
           <NeuInput
             type="password"
-            label="Password"
-            placeholder="Minimum 8 characters"
+            label="Security Key"
+            placeholder="••••••••"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
@@ -79,24 +76,34 @@ export function SignupForm() {
             autoComplete="new-password"
           />
 
-          <NeuCheckbox
-            checked={agreed}
-            onChange={setAgreed}
-            label="I agree to the Terms of Service and Privacy Policy"
-          />
+          <div className="pt-2">
+             <NeuCheckbox
+               checked={agreed}
+               onChange={setAgreed}
+               label="I accept the Terms of Engagement and Privacy Protocols"
+             />
+          </div>
 
-          <NeuButton type="submit" className="w-full" loading={loading} disabled={!agreed}>
-            Create Account
-          </NeuButton>
+          <div className="pt-4">
+             <NeuButton 
+               type="submit" 
+               className="w-full text-xl" 
+               loading={loading} 
+               disabled={!agreed}
+               variant="primary"
+             >
+               Initialize Account →
+             </NeuButton>
+          </div>
         </form>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
-          Already have an account?{" "}
-          <Link href="/login" className="font-medium text-[var(--accent)] hover:underline">
-            Sign In
-          </Link>
-        </p>
+        <div className="pt-8 border-t-2 border-black text-center space-y-4">
+           <p className="font-['Inter'] text-sm uppercase tracking-tight font-medium">Existing Personnel?</p>
+           <Link href="/login">
+              <button className="brutalist-button secondary w-full text-lg">Access Terminal</button>
+           </Link>
+        </div>
       </div>
 
       <NeuToast message={message} open={toast} variant={toastVariant} onClose={() => setToast(false)} />

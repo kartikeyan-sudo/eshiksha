@@ -1,64 +1,20 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeInitializer } from "../components/layout/ThemeInitializer";
-import { GlobalLoader } from "../components/layout/GlobalLoader";
-import { SplashLoader } from "../components/ui/SplashLoader";
-
-function toOrigin(url: string) {
-  try {
-    return new URL(url).origin;
-  } catch {
-    return "";
-  }
-}
-
-const preconnectOrigins = Array.from(
-  new Set(
-    [
-      toOrigin(process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"),
-      toOrigin(
-        process.env.NEXT_PUBLIC_S3_ENDPOINT ||
-          process.env.NEXT_PUBLIC_S3_BASE_URL ||
-          process.env.NEXT_PUBLIC_AWS_S3_ENDPOINT ||
-          "",
-      ),
-    ].filter(Boolean),
-  ),
-);
+import { Navbar } from "../components/layout/Navbar";
+import { Footer } from "../components/layout/Footer";
+import { NotificationProvider } from "../components/ui/NotificationCenter";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "EShikhsha | Universal Premium Ebook Platform",
-  description: "Discover, preview, and purchase premium ebooks across all categories. Learn, grow, and master new skills with EShikhsha's curated collection.",
-  keywords: ["ebooks", "learning", "study", "nutrition", "PDF", "online books", "skills"],
-  openGraph: {
-    title: "EShikhsha | Universal Premium Ebook Platform",
-    description: "Discover, preview, and purchase premium ebooks across all categories.",
-    type: "website",
-    siteName: "EShikhsha",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "EShikhsha | Universal Premium Ebook Platform",
-    description: "Discover, preview, and purchase premium ebooks across all categories.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  description: "Elite protocol acquisition and verified scholarly dissemination.",
+  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
 };
-
-import { NotificationProvider } from "../components/ui/NotificationCenter";
 
 export default function RootLayout({
   children,
@@ -69,21 +25,19 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
     >
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        {preconnectOrigins.map((origin) => (
-          <link key={origin} rel="preconnect" href={origin} />
-        ))}
+        <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className="min-h-full">
-        <ThemeInitializer />
+      <body className="min-h-full bg-white selection:bg-black selection:text-white">
         <NotificationProvider>
-          <SplashLoader />
-          <GlobalLoader />
-          <div className="relative">
-            {children}
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
           </div>
         </NotificationProvider>
       </body>

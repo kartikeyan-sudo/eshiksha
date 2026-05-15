@@ -27,94 +27,76 @@ export default function UserOrdersPage() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  const getStatusTone = (status: string): "info" | "success" | "warning" | "danger" => {
-    if (status === "completed") return "success";
-    if (status === "delivered") return "info";
-    if (status === "payment_review") return "danger";
-    return "warning";
-  };
-
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 pb-24 md:px-8 md:pb-8 animate-fade-in">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-12 shadow-2xl">
-        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[var(--accent)]/10 blur-[80px] rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="relative z-10 space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-[var(--accent)] uppercase tracking-widest">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-            Transaction History
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase">My Orders</h1>
-          <p className="text-sm md:text-base text-[var(--text-muted)] font-medium max-w-md uppercase tracking-tight">
-            {orders.length} secure protocol acquisitions recorded.
-          </p>
-        </div>
-      </div>
+      <header className="brutalist-header">
+        <h1 className="font-['Anton']">Transaction Log</h1>
+        <p className="font-['Bebas_Neue'] text-2xl uppercase">Procurement History</p>
+        <p className="tagline font-['Anton'] text-[#b83227] text-xl mt-2 uppercase tracking-wider">Financial Clearance // Ledger V-26</p>
+      </header>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20 space-y-4">
-           <div className="w-12 h-12 border-4 border-white/10 border-t-[var(--accent)] rounded-full animate-spin" />
-           <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Retrieving Records...</p>
-        </div>
-      ) : orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 bg-white/5 rounded-[2.5rem] border border-dashed border-white/10">
-          <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center text-3xl">📦</div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black text-white uppercase tracking-tight">No Acquisitions</h2>
-            <p className="text-sm text-[var(--text-muted)] max-w-xs uppercase font-medium">Your procurement history is currently empty.</p>
+      <main className="section-container space-y-16">
+        
+        <section className="p-0 w-full space-y-8">
+          <div className="flex items-center justify-between border-b-4 border-black pb-4">
+             <h2 className="text-4xl">Acquisition History</h2>
+             <span className="font-['Bebas_Neue'] text-xl uppercase tracking-widest">{orders.length} Entries Recorded</span>
           </div>
-          <Link href="/">
-            <button className="px-8 py-4 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest">Explore Marketplace</button>
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 stagger-children">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="group relative flex flex-col md:flex-row md:items-center justify-between p-6 bg-[#0a0a0a] border border-white/5 rounded-3xl hover:border-[var(--accent)] hover:shadow-[0_0_30px_rgba(99,102,241,0.1)] transition-all duration-300"
-            >
-              <div className="flex items-center gap-6">
-                <div className="relative h-24 w-18 md:h-32 md:w-24 flex-shrink-0 overflow-hidden rounded-xl shadow-2xl">
-                  {order.coverUrl && (
-                    <img src={order.coverUrl} className="h-full w-full object-cover transition-transform group-hover:scale-110" />
-                  )}
-                  <div className="absolute inset-0 bg-black/20" />
-                </div>
-                
-                <div className="space-y-2 min-w-0">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Order #{order.id}</span>
-                    <NeuBadge tone={getStatusTone(order.status)} className="uppercase text-[8px] font-black tracking-widest">
-                      {order.status.replace("_", " ")}
-                    </NeuBadge>
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight line-clamp-1">{order.ebookTitle}</h3>
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
-                     <span>{formatINR(order.amount)}</span>
-                     <span className="h-1 w-1 rounded-full bg-white/20" />
-                     <span>{new Date(order.createdAt).toLocaleDateString("en-IN", { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-3 mt-6 md:mt-0">
-                <Link href={`/ebook/${order.ebookId}`} className="flex-1 md:flex-none">
-                  <button className="w-full md:w-auto px-8 py-4 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.05] active:scale-[0.95]">
-                    {order.status === 'completed' || order.status === 'delivered' ? 'Read Protocol' : 'View Detail'}
-                  </button>
-                </Link>
-                {order.paymentMethod && (
-                  <div className="hidden lg:flex flex-col items-end">
-                     <p className="text-[8px] font-black text-[var(--text-muted)] uppercase tracking-widest">Gateway</p>
-                     <p className="text-[10px] font-black text-white uppercase">{order.paymentMethod}</p>
-                  </div>
-                )}
-              </div>
+          {loading ? (
+            <div className="py-20 text-center border-2 border-black shadow-[8px_8px_0px_black]">
+               <p className="font-['Bebas_Neue'] text-4xl animate-pulse">Retrieving Ledger...</p>
             </div>
-          ))}
-        </div>
-      )}
+          ) : orders.length === 0 ? (
+            <div className="py-20 text-center border-2 border-dashed border-black">
+               <h3 className="text-4xl mb-4 font-['Anton']">No Transactions</h3>
+               <p className="font-['Inter'] mb-8 uppercase text-sm tracking-widest">Your procurement ledger is currently empty.</p>
+               <Link href="/">
+                  <button className="brutalist-button accent">Initiate Acquisition →</button>
+               </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6">
+              {orders.map((order) => (
+                <div key={order.id} className="brutalist-card p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-20 border-2 border-black flex-shrink-0 bg-gray-50">
+                       {order.coverUrl && <img src={order.coverUrl} className="w-full h-full object-cover" />}
+                    </div>
+                    <div className="space-y-1">
+                       <h3 className="text-2xl font-['Anton'] uppercase">{order.ebookTitle}</h3>
+                       <p className="font-['Bebas_Neue'] text-sm text-gray-500 uppercase tracking-widest">
+                         Order #{order.id} // {new Date(order.createdAt).toLocaleDateString()}
+                       </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 justify-center">
+                     <div className="text-center md:text-right px-4">
+                        <p className="font-['Bebas_Neue'] text-xs text-gray-400 uppercase tracking-widest">Payload Value</p>
+                        <p className="font-['Anton'] text-xl text-[#b83227]">{formatINR(order.amount)}</p>
+                     </div>
+                     
+                     <NeuBadge tone={order.status === 'completed' ? 'success' : 'warning'}>
+                        {order.status}
+                     </NeuBadge>
+
+                     <Link href={`/ebook/${order.ebookId}`}>
+                        <button className="brutalist-button primary py-2 px-4 text-sm">View Intel</button>
+                     </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </main>
+
+      <footer className="mt-24 bg-black text-white p-12 text-center font-['Bebas_Neue'] tracking-[0.2em] uppercase">
+         <p>Ledger Closed // End of Records</p>
+      </footer>
     </div>
   );
 }
