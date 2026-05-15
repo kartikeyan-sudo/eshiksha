@@ -1,50 +1,72 @@
-"use client";
-
 import Link from "next/link";
+
+const footerSections = [
+  {
+    title: "Platform",
+    links: [
+      { href: "/", label: "Home" },
+      { href: "/library", label: "My Library" },
+      { href: "/orders", label: "Orders" },
+    ],
+  },
+  {
+    title: "Resources",
+    links: [
+      { href: "/login", label: "Sign In" },
+      { href: "/signup", label: "Create Account" },
+    ],
+  },
+];
 
 export function Footer() {
   return (
-    <footer className="w-full bg-white border-t-4 border-black py-16 px-6 md:px-12">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div className="space-y-6 md:col-span-2">
-          <h2 className="font-['Anton'] text-5xl uppercase tracking-tighter">EShikhsha</h2>
-          <p className="font-['Inter'] text-gray-600 max-w-sm">
-            Disseminating verified intellectual assets and secure technical protocols for the elite academic elite.
-          </p>
-          <div className="flex gap-4">
-             <div className="w-10 h-10 border-2 border-black flex items-center justify-center font-['Anton'] hover:bg-black hover:text-white transition-all cursor-pointer">X</div>
-             <div className="w-10 h-10 border-2 border-black flex items-center justify-center font-['Anton'] hover:bg-black hover:text-white transition-all cursor-pointer">IG</div>
-             <div className="w-10 h-10 border-2 border-black flex items-center justify-center font-['Anton'] hover:bg-black hover:text-white transition-all cursor-pointer">TG</div>
+    <footer className="hidden px-4 pb-6 pt-10 md:block md:px-6">
+      <div className="glass-surface mx-auto w-full max-w-7xl rounded-2xl px-6 py-8">
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Brand */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] text-white text-xs font-bold">
+                ES
+              </div>
+              <span className="text-base font-bold bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)] bg-clip-text text-transparent">
+                EShikhsha
+              </span>
+            </div>
+            <p className="text-sm text-[var(--text-muted)] max-w-xs leading-relaxed">
+              Premium cybersecurity ebooks — learn, practice, and master security skills with our curated collection.
+            </p>
           </div>
+
+          {/* Links */}
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{section.title}</h3>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors duration-200"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        <div className="space-y-4">
-          <h3 className="font-['Bebas_Neue'] text-2xl uppercase tracking-widest text-black border-b-2 border-black inline-block">Directory</h3>
-          <ul className="space-y-2 font-['Bebas_Neue'] text-lg uppercase tracking-wider">
-            <li><Link href="/" className="hover:text-[#b83227]">Marketplace</Link></li>
-            <li><Link href="/library" className="hover:text-[#b83227]">Personal Vault</Link></li>
-            <li><Link href="/orders" className="hover:text-[#b83227]">Procurement</Link></li>
-            <li><Link href="/contact" className="hover:text-[#b83227]">Encryption Support</Link></li>
-          </ul>
+        {/* Divider + Copyright */}
+        <div className="mt-8 border-t border-[var(--glass-border)] pt-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <p className="text-xs text-[var(--text-muted)]">
+            © {new Date().getFullYear()} EShikhsha. All rights reserved.
+          </p>
+          <p className="text-xs text-[var(--text-muted)]">
+            Built with Next.js + Tailwind CSS
+          </p>
         </div>
-
-        <div className="space-y-4">
-          <h3 className="font-['Bebas_Neue'] text-2xl uppercase tracking-widest text-black border-b-2 border-black inline-block">Security</h3>
-          <ul className="space-y-2 font-['Bebas_Neue'] text-lg uppercase tracking-wider">
-            <li className="text-gray-500">SSL STATUS: ENCRYPTED</li>
-            <li className="text-gray-500">DATA SOVEREIGNTY: ACTIVE</li>
-            <li className="text-gray-500">PAYMENT GATE: VERIFIED</li>
-            <li className="text-gray-500">LEDGER TYPE: V-26</li>
-          </ul>
-        </div>
-      </div>
-      
-      <div className="mt-16 pt-8 border-t-2 border-black/10 flex flex-col md:flex-row justify-between items-center gap-4 font-['Bebas_Neue'] text-sm uppercase tracking-[0.2em] text-gray-400">
-         <p>&copy; 2026 EShikhsha Universal // All Rights Reserved</p>
-         <div className="flex gap-8">
-            <span className="hover:text-black cursor-pointer">Privacy Protocol</span>
-            <span className="hover:text-black cursor-pointer">Terms of Engagement</span>
-         </div>
       </div>
     </footer>
   );

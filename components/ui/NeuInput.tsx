@@ -1,23 +1,35 @@
-import React from "react";
+import { cn } from "@/lib/utils";
 
-interface NeuInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+type NeuInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   error?: string;
-}
+};
 
-export const NeuInput: React.FC<NeuInputProps> = ({ label, error, className = "", ...props }) => {
+export function NeuInput({ className, label, error, id, ...props }: NeuInputProps) {
+  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
+
   return (
-    <div className="space-y-2">
-      {label && (
-        <label className="block font-['Bebas_Neue'] text-xl uppercase tracking-widest text-black">
+    <div className="w-full space-y-1.5">
+      {label ? (
+        <label htmlFor={inputId} className="block text-sm font-medium text-[var(--text-secondary)]">
           {label}
         </label>
-      )}
+      ) : null}
       <input
-        className={`w-full px-4 py-3 bg-white border-2 border-black font-['Inter'] text-black placeholder:text-gray-400 focus:outline-none focus:translate-x-[-2px] focus:translate-y-[-2px] focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all ${className}`}
+        id={inputId}
+        className={cn(
+          "neu-inset w-full min-h-[44px] rounded-xl px-4 py-2.5 text-sm text-[var(--text-primary)]",
+          "placeholder:text-[var(--text-muted)]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+          "transition-shadow duration-200",
+          error && "ring-2 ring-[var(--danger)]",
+          className,
+        )}
         {...props}
       />
-      {error && <p className="text-red-600 font-['Inter'] text-sm font-bold uppercase">{error}</p>}
+      {error ? (
+        <p className="text-xs text-[var(--danger)]" role="alert">{error}</p>
+      ) : null}
     </div>
   );
-};
+}
