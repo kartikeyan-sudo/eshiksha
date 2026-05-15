@@ -39,13 +39,22 @@ router.post(
   "/:ebookId/create-order",
   authenticate,
   asyncHandler(async (req, res) => {
-    if (!ensureRazorpayConfigured(res)) {
-      return;
-    }
-
     const ebookId = Number(req.params.ebookId);
     if (!Number.isInteger(ebookId)) {
       return res.status(400).json({ message: "Invalid ebook id" });
+    }
+
+    // Check payment mode
+    const settingsResult = await pool.query(
+      "SELECT key, value FROM settings WHERE key IN ('payment_mode', 'admin_upi_id')"
+    );
+    const settings = {};
+    settingsResult.rows.forEach(r => settings[r.key] = r.value);
+    
+    const isUpiOnly = settings.payment_mode === 'upi';
+
+    if (!isUpiOnly && !ensureRazorpayConfigured(res)) {
+      return;
     }
 
     const ebookResult = await pool.query(
@@ -91,6 +100,18 @@ router.post(
       return res.json({
         message: "Free ebook unlocked",
         isFree: true,
+      });
+    }
+
+    if (isUpiOnly) {
+      return res.json({
+        isUpi: true,
+        adminUpiId: settings.admin_upi_id || '',
+        ebook: {
+          id: ebook.id,
+          title: ebook.title,
+          price: Number(ebook.price),
+        },
       });
     }
 
@@ -249,6 +270,60 @@ router.post(
       message: created.rowCount > 0 ? "Purchase successful" : "Ebook already purchased",
       purchase: created.rows[0] || null,
       verified: true,
+    });
+  }),
+);
+
+router.post(
+  "/:ebookId/submit-upi",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const ebookId = Number(req.params.ebookId);
+    const { utr_number } = req.body;
+
+    if (!Number.isInteger(ebookId)) {
+      return res.status(400).json({ message: "Invalid ebook id" });
+    }
+
+    if (!utr_number || utr_number.trim().length < 6) {
+      return res.status(400).json({ message: "Invalid UTR number" });
+    }
+
+    const ebookResult = await pool.query(
+      "SELECT id, price FROM ebooks WHERE id = $1",
+      [ebookId],
+    );
+
+    if (ebookResult.rowCount === 0) {
+      return res.status(404).json({ message: "Ebook not found" });
+    }
+
+    const ebook = ebookResult.rows[0];
+
+    // Create a transaction record
+    const orderId = `upi_${ebookId}_user_${req.user.id}_${Date.now()}`;
+    
+    await pool.query(
+      `
+      INSERT INTO payment_transactions (user_id, ebook_id, order_id, amount, status, utr_number, payment_method)
+      VALUES ($1, $2, $3, $4, 'payment_review', $5, 'upi')
+      `,
+      [req.user.id, ebookId, orderId, Number(ebook.price), utr_number, 'upi'],
+    );
+
+    // Create purchase record in review status
+    await pool.query(
+      `
+      INSERT INTO purchases (user_id, ebook_id, status)
+      VALUES ($1, $2, 'payment_review')
+      ON CONFLICT (user_id, ebook_id) DO UPDATE SET status = 'payment_review'
+      `,
+      [req.user.id, ebookId],
+    );
+
+    return res.json({
+      success: true,
+      message: "Payment submitted for review",
     });
   }),
 );

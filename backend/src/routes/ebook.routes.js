@@ -294,11 +294,17 @@ router.get(
         const user = verifyToken(token);
 
         const purchaseResult = await pool.query(
-          "SELECT id FROM purchases WHERE user_id = $1 AND ebook_id = $2",
+          "SELECT id, status FROM purchases WHERE user_id = $1 AND ebook_id = $2",
           [user.id, ebookId],
         );
 
-        ebook.hasPurchased = purchaseResult.rowCount > 0;
+        if (purchaseResult.rowCount > 0) {
+          ebook.hasPurchased = purchaseResult.rows[0].status === 'completed';
+          ebook.isPaymentReview = purchaseResult.rows[0].status === 'payment_review';
+        } else {
+          ebook.hasPurchased = false;
+          ebook.isPaymentReview = false;
+        }
       } catch {
         ebook.hasPurchased = false;
       }

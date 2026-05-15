@@ -26,7 +26,7 @@ router.get(
       FROM purchases p
       INNER JOIN ebooks e ON e.id = p.ebook_id
       LEFT JOIN LATERAL (
-        SELECT pt.payment_id, pt.order_id
+        SELECT pt.payment_id, pt.order_id, pt.payment_method, pt.utr_number
         FROM payment_transactions pt
         WHERE pt.user_id = p.user_id
           AND pt.ebook_id = p.ebook_id
@@ -50,6 +50,8 @@ router.get(
         status: row.status,
         paymentId: row.payment_id || null,
         razorpayOrderId: row.razorpay_order_id || null,
+        paymentMethod: row.payment_method || 'razorpay',
+        utrNumber: row.utr_number || null,
         coverUrl: await getObjectSignedUrl(row.cover_key, 60 * 60),
         createdAt: row.created_at,
       })),
@@ -100,7 +102,7 @@ router.get(
       INNER JOIN users u ON u.id = p.user_id
       INNER JOIN ebooks e ON e.id = p.ebook_id
       LEFT JOIN LATERAL (
-        SELECT pt.payment_id, pt.order_id
+        SELECT pt.payment_id, pt.order_id, pt.payment_method, pt.utr_number
         FROM payment_transactions pt
         WHERE pt.user_id = p.user_id
           AND pt.ebook_id = p.ebook_id
@@ -124,6 +126,8 @@ router.get(
       status: row.status,
       paymentId: row.payment_id || null,
       razorpayOrderId: row.razorpay_order_id || null,
+      paymentMethod: row.payment_method || 'razorpay',
+      utrNumber: row.utr_number || null,
       createdAt: row.created_at,
     }));
 

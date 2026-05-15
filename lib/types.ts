@@ -30,6 +30,7 @@ export type Ebook = {
   ratingsCount?: number;
   coverUrl: string;
   hasPurchased?: boolean;
+  isPaymentReview?: boolean;
 };
 
 export type EbookAccess = {
@@ -125,6 +126,8 @@ export type RazorpayOrderResponse = {
   keyId?: string;
   alreadyPurchased?: boolean;
   isFree?: boolean;
+  isUpi?: boolean;
+  adminUpiId?: string;
   message?: string;
   ebook?: {
     id: number;
@@ -147,6 +150,8 @@ export type Order = {
   status: OrderStatus;
   paymentId: string | null;
   razorpayOrderId: string | null;
+  paymentMethod?: 'razorpay' | 'upi';
+  utrNumber?: string | null;
   coverUrl?: string;
   createdAt: string;
 };
@@ -182,4 +187,10 @@ export type AdminDbStats = {
   readingProgress: number;
   bookmarks: number;
   notes: number;
+};
+
+export type AdminSettings = {
+  allow_already_paid: boolean;
+  payment_mode: 'razorpay' | 'upi';
+  admin_upi_id: string;
 };

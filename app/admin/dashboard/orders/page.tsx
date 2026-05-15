@@ -140,12 +140,16 @@ export default function AdminOrdersPage() {
     if (!token || allowAlreadyPaid === null) return;
     try {
       const newValue = !allowAlreadyPaid;
-      await updateAdminSettings(token, newValue);
+      await updateAdminSettings(token, { allow_already_paid: newValue });
       setAllowAlreadyPaid(newValue);
       setToast({ open: true, message: `Already Paid option ${newValue ? 'enabled' : 'disabled'}`, variant: "success" });
     } catch (error) {
       setToast({ open: true, message: "Failed to update settings", variant: "error" });
     }
+  };
+
+  const onVerifyUpi = async (orderId: number) => {
+    await onStatusChange(orderId, "completed");
   };
 
   return (
@@ -231,7 +235,21 @@ export default function AdminOrdersPage() {
                       <span className="font-semibold text-[var(--success)]">{formatINR(order.amount)}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <NeuBadge tone={getStatusTone(order.status)}>{order.status}</NeuBadge>
+                      <div className="flex flex-col gap-1">
+                        <NeuBadge tone={getStatusTone(order.status)}>{order.status}</NeuBadge>
+                        {order.paymentMethod && (
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                            order.paymentMethod === 'upi' ? 'text-purple-500' : 'text-indigo-500'
+                          }`}>
+                            Paid via {order.paymentMethod}
+                          </span>
+                        )}
+                        {order.utrNumber && (
+                          <p className="text-[10px] text-[var(--text-muted)] font-mono">
+                            UTR: {order.utrNumber}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-[var(--text-muted)] whitespace-nowrap">
                       {formatDate(order.createdAt)}
@@ -250,6 +268,16 @@ export default function AdminOrdersPage() {
                             </option>
                           ))}
                         </select>
+                        {order.status === "payment_review" && order.paymentMethod === "upi" && (
+                          <NeuButton
+                            className="min-h-[32px] px-3 py-1 text-xs"
+                            onClick={() => onVerifyUpi(order.id)}
+                            loading={updatingId === order.id}
+                            disabled={deletingId === order.id}
+                          >
+                            Verify
+                          </NeuButton>
+                        )}
                         <NeuButton
                           variant="danger"
                           className="min-h-[32px] px-3 py-1 text-xs"

@@ -15,6 +15,7 @@ import type {
   RazorpayOrderResponse,
   RazorpayVerifyPayload,
   ReadingProgress,
+  AdminSettings,
 } from "@/lib/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
@@ -173,6 +174,14 @@ export function submitAlreadyPaid(id: string | number, token: string) {
   return apiRequest<{ message: string; success: boolean }>(`/api/purchase/${id}/already-paid`, {
     method: "POST",
     token,
+  });
+}
+
+export function submitUpiPayment(id: string | number, utr_number: string, token: string) {
+  return apiRequest<{ message: string; success: boolean }>(`/api/purchase/${id}/submit-upi`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({ utr_number }),
   });
 }
 
@@ -487,17 +496,17 @@ export function listRelatedBooks(ebookId: number, _category?: string, limit = 4)
 // ═══════ Admin Settings ═══════
 
 export function getAdminSettings(token: string) {
-  return apiRequest<{ allow_already_paid: boolean }>("/api/admin/settings", {
+  return apiRequest<AdminSettings>("/api/admin/settings", {
     method: "GET",
     token,
   });
 }
 
-export function updateAdminSettings(token: string, allowAlreadyPaid: boolean) {
-  return apiRequest<{ message: string; settings: { allow_already_paid: boolean } }>("/api/admin/settings", {
+export function updateAdminSettings(token: string, settings: Partial<AdminSettings>) {
+  return apiRequest<{ message: string }>("/api/admin/settings", {
     method: "PATCH",
     token,
-    body: JSON.stringify({ allow_already_paid: allowAlreadyPaid }),
+    body: JSON.stringify(settings),
   });
 }
 

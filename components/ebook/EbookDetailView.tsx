@@ -12,6 +12,8 @@ import { NeuModal } from "@/components/ui/NeuModal";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { EbookRatingPanel } from "@/components/ebook/EbookRatingPanel";
 import { EbookCard } from "@/components/ebook/EbookCard";
+import { UpiPaymentModal } from "@/components/ebook/UpiPaymentModal";
+import { submitUpiPayment } from "@/lib/api";
 import type { Ebook } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
 
@@ -120,7 +122,9 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const [relatedBooks, setRelatedBooks] = useState<Ebook[]>([]);
   const [allowAlreadyPaid, setAllowAlreadyPaid] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isPaymentReview, setIsPaymentReview] = useState(false);
+  const [isPaymentReview, setIsPaymentReview] = useState(Boolean(ebook.isPaymentReview));
+  const [showUpiModal, setShowUpiModal] = useState(false);
+  const [upiDetails, setUpiDetails] = useState({ upiId: "", amount: 0 });
 
   useEffect(() => {
     void trackEbookView(ebook.id).catch(() => null);
@@ -164,23 +168,21 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
     }
   };
 
-  const handleAlreadyPaid = async () => {
-    setShowPaymentModal(false);
+  const handleUpiSubmit = async (utr: string) => {
     const token = getClientToken();
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    if (!token) return;
+
     setBuying(true);
     try {
-      await submitAlreadyPaid(ebook.id, token);
+      await submitUpiPayment(ebook.id, utr, token);
+      setShowUpiModal(false);
       setIsPaymentReview(true);
       setToastVariant("success");
-      setMessage("Payment submitted for review.");
+      setMessage("Soon the payment will be verified by the team and your ebook will be delivered to you!");
       setShowToast(true);
     } catch (error) {
       setToastVariant("error");
-      setMessage(error instanceof Error ? error.message : "Could not submit payment");
+      setMessage(error instanceof Error ? error.message : "Submission failed");
       setShowToast(true);
     } finally {
       setBuying(false);
@@ -226,6 +228,15 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         setToastVariant("success");
         setMessage(order.message || "Access granted.");
         setShowToast(true);
+        return;
+      }
+
+      if (order.isUpi) {
+        setUpiDetails({
+          upiId: order.adminUpiId || "",
+          amount: order.ebook?.price || ebook.price,
+        });
+        setShowUpiModal(true);
         return;
       }
 
@@ -479,20 +490,15 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
 
       <NeuToast message={message} open={showToast} variant={toastVariant} onClose={() => setShowToast(false)} />
 
-      <NeuModal open={showPaymentModal} onClose={() => setShowPaymentModal(false)} title="Select Payment Method">
-        <div className="flex flex-col gap-4 mt-4">
-          <NeuButton onClick={buyNow} className="w-full py-4 font-bold">
-            <span className="flex items-center gap-2 m-auto text-white">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              Proceed with Razorpay
-            </span>
-          </NeuButton>
-          <NeuButton variant="secondary" onClick={handleAlreadyPaid} className="w-full py-4 font-bold">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            I have already paid
-          </NeuButton>
-        </div>
-      </NeuModal>
+      <UpiPaymentModal
+        open={showUpiModal}
+        onClose={() => setShowUpiModal(false)}
+        onSubmit={handleUpiSubmit}
+        upiId={upiDetails.upiId}
+        amount={upiDetails.amount}
+        ebookTitle={ebook.title}
+        loading={buying}
+      />
     </div>
   );
 }

@@ -18,9 +18,13 @@ router.get(
   "/settings",
   asyncHandler(async (req, res) => {
     const result = await pool.query("SELECT key, value FROM settings");
-    const settings = { allow_already_paid: false };
+    const settings = { allow_already_paid: false, payment_mode: 'razorpay', admin_upi_id: '' };
     result.rows.forEach((r) => {
-      settings[r.key] = r.value === "true";
+      if (r.key === 'allow_already_paid') {
+        settings[r.key] = r.value === "true";
+      } else {
+        settings[r.key] = r.value;
+      }
     });
     return res.json(settings);
   }),
@@ -29,11 +33,23 @@ router.get(
 router.patch(
   "/settings",
   asyncHandler(async (req, res) => {
-    const { allow_already_paid } = req.body;
+    const { allow_already_paid, payment_mode, admin_upi_id } = req.body;
     if (allow_already_paid !== undefined) {
       await pool.query(
-        "INSERT INTO settings (key, value) VALUES ('allow_already_paid', $1) ON CONFLICT (key) DO UPDATE SET value = $1",
+        "INSERT INTO settings (key, value) VALUES ('allow_already_paid', $1) ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()",
         [String(allow_already_paid)],
+      );
+    }
+    if (payment_mode !== undefined) {
+      await pool.query(
+        "INSERT INTO settings (key, value) VALUES ('payment_mode', $1) ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()",
+        [String(payment_mode)],
+      );
+    }
+    if (admin_upi_id !== undefined) {
+      await pool.query(
+        "INSERT INTO settings (key, value) VALUES ('admin_upi_id', $1) ON CONFLICT (key) DO UPDATE SET value = $1, updated_at = NOW()",
+        [String(admin_upi_id)],
       );
     }
     return res.json({ message: "Settings updated successfully" });
@@ -388,7 +404,7 @@ router.get(
       INNER JOIN users u ON u.id = p.user_id
       INNER JOIN ebooks e ON e.id = p.ebook_id
       LEFT JOIN LATERAL (
-        SELECT pt.payment_id, pt.order_id
+        SELECT pt.payment_id, pt.order_id, pt.payment_method, pt.utr_number
         FROM payment_transactions pt
         WHERE pt.user_id = p.user_id
           AND pt.ebook_id = p.ebook_id
@@ -413,6 +429,8 @@ router.get(
       status: row.status,
       paymentId: row.payment_id || null,
       razorpayOrderId: row.razorpay_order_id || null,
+      paymentMethod: row.payment_method || 'razorpay',
+      utrNumber: row.utr_number || null,
       createdAt: row.created_at,
     }));
 

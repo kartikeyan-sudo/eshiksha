@@ -140,6 +140,9 @@ async function initDatabase() {
     );
   `);
 
+  await pool.query(\"ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS utr_number VARCHAR(50)\");
+  await pool.query(\"ALTER TABLE payment_transactions ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'razorpay'\");
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS settings (
       id SERIAL PRIMARY KEY,
@@ -149,6 +152,9 @@ async function initDatabase() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  await pool.query(\"INSERT INTO settings (key, value) VALUES ('payment_mode', 'razorpay') ON CONFLICT (key) DO NOTHING\");
+  await pool.query(\"INSERT INTO settings (key, value) VALUES ('admin_upi_id', '') ON CONFLICT (key) DO NOTHING\");
 
   await pool.query("CREATE INDEX IF NOT EXISTS idx_reading_progress_user_id ON reading_progress(user_id)");
   await pool.query("CREATE INDEX IF NOT EXISTS idx_reading_progress_user_ebook ON reading_progress(user_id, ebook_id)");
