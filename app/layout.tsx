@@ -58,6 +58,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { NotificationProvider } from "../components/ui/NotificationCenter";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -76,12 +78,14 @@ export default function RootLayout({
         ))}
       </head>
       <body className="min-h-full">
-        <SplashLoader />
         <ThemeInitializer />
-        <GlobalLoader />
-        <div className="relative">
-          {children}
-        </div>
+        <NotificationProvider>
+          <SplashLoader />
+          <GlobalLoader />
+          <div className="relative">
+            {children}
+          </div>
+        </NotificationProvider>
       </body>
     </html>
   );

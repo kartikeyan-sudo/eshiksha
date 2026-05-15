@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { NeuBadge } from "@/components/ui/NeuBadge";
-import { NeuButton } from "@/components/ui/NeuButton";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { BackButton } from "@/components/ui/BackButton";
 import { getClientToken } from "@/lib/auth";
@@ -11,33 +10,13 @@ import type { AdminOrder } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
 
 const STATUS_OPTIONS = ["pending", "payment_review", "completed", "delivered"] as const;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 12;
 
 function getStatusTone(status: string): "info" | "success" | "warning" | "danger" {
   if (status === "completed") return "success";
   if (status === "delivered") return "info";
   if (status === "payment_review") return "danger";
   return "warning";
-}
-
-function getStatusSelectClass(status: string) {
-  const tone = getStatusTone(status);
-  switch (tone) {
-    case "success": return "text-green-500 bg-green-500/10 border-green-500/20";
-    case "info": return "text-blue-500 bg-blue-500/10 border-blue-500/20";
-    case "danger": return "text-red-500 bg-red-500/10 border-red-500/20";
-    case "warning": default: return "text-amber-500 bg-amber-500/10 border-amber-500/20";
-  }
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export default function AdminOrdersPage() {
@@ -106,9 +85,9 @@ export default function AdminOrdersPage() {
     try {
       await updateOrderStatus(orderId, newStatus, token);
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)));
-      setToast({ open: true, message: "Order status updated", variant: "success" });
+      setToast({ open: true, message: "Security clearance updated.", variant: "success" });
     } catch (error) {
-      setToast({ open: true, message: error instanceof Error ? error.message : "Failed to update", variant: "error" });
+      setToast({ open: true, message: error instanceof Error ? error.message : "Update failed", variant: "error" });
     } finally {
       setUpdatingId(null);
     }
@@ -118,18 +97,16 @@ export default function AdminOrdersPage() {
     const token = getClientToken();
     if (!token) return;
 
-    const ok = window.confirm(
-      `Delete order #${order.id} for ${order.userEmail}? This cannot be undone.`,
-    );
+    const ok = window.confirm(`Permanently purge order #${order.id}? This action is irreversible.`);
     if (!ok) return;
 
     setDeletingId(order.id);
     try {
       await deleteAdminOrder(order.id, token);
       await fetchOrders();
-      setToast({ open: true, message: "Order deleted", variant: "success" });
+      setToast({ open: true, message: "Order purged from records.", variant: "success" });
     } catch (error) {
-      setToast({ open: true, message: error instanceof Error ? error.message : "Failed to delete order", variant: "error" });
+      setToast({ open: true, message: error instanceof Error ? error.message : "Purge failed", variant: "error" });
     } finally {
       setDeletingId(null);
     }
@@ -142,174 +119,156 @@ export default function AdminOrdersPage() {
       const newValue = !allowAlreadyPaid;
       await updateAdminSettings(token, { allow_already_paid: newValue });
       setAllowAlreadyPaid(newValue);
-      setToast({ open: true, message: `Already Paid option ${newValue ? 'enabled' : 'disabled'}`, variant: "success" });
+      setToast({ open: true, message: `System: 'Already Paid' flow ${newValue ? 'active' : 'inactive'}`, variant: "success" });
     } catch (error) {
-      setToast({ open: true, message: "Failed to update settings", variant: "error" });
+      setToast({ open: true, message: "System override failed", variant: "error" });
     }
   };
 
-  const onVerifyUpi = async (orderId: number) => {
-    await onStatusChange(orderId, "completed");
-  };
-
   return (
-    <div className="space-y-6 animate-fade-in">
-      <BackButton />
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">📦 Order Management</h1>
-          <p className="text-sm text-[var(--text-muted)]">{total} orders</p>
+    <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-8 animate-fade-in pb-20">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="space-y-2">
+          <BackButton />
+          <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Command Center: Orders</h1>
+          <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">{total} Active Procurement Entries</p>
         </div>
 
-        {allowAlreadyPaid !== null && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-[var(--text-primary)] cursor-pointer" onClick={onToggleAlreadyPaid}>
-              Allow "Already Paid" Requests
-            </span>
-            <button
+        <div className="flex flex-wrap items-center gap-4">
+          {allowAlreadyPaid !== null && (
+            <button 
               onClick={onToggleAlreadyPaid}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                allowAlreadyPaid ? "bg-blue-600" : "bg-gray-200 dark:bg-gray-700"
+              className={`flex items-center gap-3 px-6 py-3 rounded-2xl border transition-all ${
+                allowAlreadyPaid ? "bg-[var(--accent)]/10 border-[var(--accent)] text-white" : "bg-white/5 border-white/5 text-[var(--text-muted)]"
               }`}
             >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  allowAlreadyPaid ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
+              <span className={`h-2 w-2 rounded-full ${allowAlreadyPaid ? "bg-white animate-pulse" : "bg-white/20"}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Manual Payments: {allowAlreadyPaid ? "ON" : "OFF"}</span>
             </button>
-          </div>
-        )}
+          )}
+        </div>
+      </div>
 
-        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div className="md:col-span-4 lg:col-span-5 relative">
           <input
             type="search"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search user or ebook"
-            className="w-full rounded-lg border border-[var(--glass-border)] bg-transparent px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] sm:w-56"
+            placeholder="Search Intelligence... (Email, ID, Ebook)"
+            className="w-full h-14 bg-[#0a0a0a] border border-white/5 rounded-2xl px-6 text-sm text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-[var(--text-muted)] placeholder:uppercase placeholder:font-black placeholder:text-[9px] placeholder:tracking-widest"
           />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">🔍</div>
+        </div>
+        
+        <div className="md:col-span-8 lg:col-span-7 flex overflow-x-auto gap-2 no-scrollbar">
           {["", ...STATUS_OPTIONS].map((status) => (
             <button
               key={status}
-              type="button"
               onClick={() => setFilterStatus(status)}
-              className={`category-chip ${filterStatus === status ? "active" : ""}`}
+              className={`h-14 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                filterStatus === status ? "bg-white text-black" : "bg-white/5 text-[var(--text-muted)] hover:bg-white/10"
+              }`}
             >
-              {status || "All"}
+              {status || "All Records"}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="glass-surface rounded-2xl overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center text-sm text-[var(--text-muted)]">Loading orders...</div>
-        ) : orders.length === 0 ? (
-          <div className="p-12 text-center text-sm text-[var(--text-muted)]">No orders found</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--glass-border)] bg-[var(--surface)]">
-                  <th className="px-4 py-3 text-left font-semibold text-[var(--text-secondary)]">User</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[var(--text-secondary)]">Ebook</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[var(--text-secondary)]">Amount</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[var(--text-secondary)]">Status</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[var(--text-secondary)]">Date</th>
-                  <th className="px-4 py-3 text-left font-semibold text-[var(--text-secondary)]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--glass-border)]">
-                {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-[var(--surface-hover)] transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-[var(--text-primary)] truncate max-w-[180px]">{order.userEmail}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-[var(--text-primary)] truncate max-w-[200px]">{order.ebookTitle}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="font-semibold text-[var(--success)]">{formatINR(order.amount)}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex flex-col gap-1">
-                        <NeuBadge tone={getStatusTone(order.status)}>{order.status}</NeuBadge>
-                        {order.paymentMethod && (
-                          <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                            order.paymentMethod === 'upi' ? 'text-purple-500' : 'text-indigo-500'
-                          }`}>
-                            Paid via {order.paymentMethod}
-                          </span>
-                        )}
-                        {order.utrNumber && (
-                          <p className="text-[10px] text-[var(--text-muted)] font-mono">
-                            UTR: {order.utrNumber}
-                          </p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-[var(--text-muted)] whitespace-nowrap">
-                      {formatDate(order.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={order.status}
-                          onChange={(e) => onStatusChange(order.id, e.target.value as (typeof STATUS_OPTIONS)[number])}
-                          disabled={updatingId === order.id || deletingId === order.id}
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${getStatusSelectClass(order.status)}`}
-                        >
-                          {STATUS_OPTIONS.map((state) => (
-                            <option key={state} value={state} className="bg-[var(--surface-color)] text-[var(--text-primary)] font-medium">
-                              {state === "payment_review" ? "payment review" : state}
-                            </option>
-                          ))}
-                        </select>
-                        {order.status === "payment_review" && order.paymentMethod === "upi" && (
-                          <NeuButton
-                            className="min-h-[32px] px-3 py-1 text-xs"
-                            onClick={() => onVerifyUpi(order.id)}
-                            loading={updatingId === order.id}
-                            disabled={deletingId === order.id}
-                          >
-                            Verify
-                          </NeuButton>
-                        )}
-                        <NeuButton
-                          variant="danger"
-                          className="min-h-[32px] px-3 py-1 text-xs"
-                          onClick={() => onDeleteOrder(order)}
-                          loading={deletingId === order.id}
-                          disabled={updatingId === order.id}
-                        >
-                          Delete
-                        </NeuButton>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      {/* Results */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-32 space-y-4">
+           <div className="w-12 h-12 border-4 border-white/10 border-t-[var(--accent)] rounded-full animate-spin" />
+           <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Synchronizing Database...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {orders.map((order) => (
+            <div key={order.id} className="group relative bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-6 space-y-6 hover:border-[var(--accent)]/50 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-20 transition-opacity">
+                <span className="text-6xl font-black italic">#{order.id}</span>
+              </div>
 
+              <div className="flex items-start justify-between relative z-10">
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">Subscriber</p>
+                  <h3 className="text-sm font-black text-white truncate max-w-[200px]">{order.userEmail}</h3>
+                </div>
+                <NeuBadge tone={getStatusTone(order.status)} className="text-[8px] font-black uppercase tracking-widest">
+                  {order.status}
+                </NeuBadge>
+              </div>
+
+              <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-4 border border-white/5">
+                 {order.coverUrl && (
+                   <img src={order.coverUrl} className="h-16 w-12 rounded-lg object-cover shadow-2xl" />
+                 )}
+                 <div className="min-w-0 flex-1">
+                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Protocol Title</p>
+                    <h4 className="text-xs font-black text-white uppercase line-clamp-2 tracking-tight">{order.ebookTitle}</h4>
+                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                 <div>
+                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Total Payload</p>
+                    <p className="text-lg font-black text-[var(--success)]">{formatINR(order.amount)}</p>
+                 </div>
+                 <div className="text-right">
+                    <p className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-1">Timestamp</p>
+                    <p className="text-[10px] font-bold text-white uppercase">{new Date(order.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' })}</p>
+                 </div>
+              </div>
+
+              {order.utrNumber && (
+                <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3">
+                   <p className="text-[8px] font-black text-purple-400 uppercase tracking-[0.2em] mb-1">UTR Verification Required</p>
+                   <p className="text-xs font-mono text-white tracking-widest">{order.utrNumber}</p>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-2">
+                 <select 
+                   value={order.status}
+                   onChange={(e) => onStatusChange(order.id, e.target.value as any)}
+                   className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-[var(--accent)]"
+                 >
+                    {STATUS_OPTIONS.map(opt => <option key={opt} value={opt} className="bg-black">{opt}</option>)}
+                 </select>
+                 
+                 <button 
+                   onClick={() => onDeleteOrder(order)}
+                   disabled={deletingId === order.id}
+                   className="w-12 h-12 rounded-xl bg-white/5 border border-white/5 text-[var(--danger)] flex items-center justify-center hover:bg-[var(--danger)]/10 transition-all"
+                 >
+                    {deletingId === order.id ? "..." : "🗑️"}
+                 </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
       {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between rounded-xl border border-[var(--glass-border)] px-4 py-3 text-sm text-[var(--text-secondary)]">
-          <span>
-            Page {page} of {totalPages}
-          </span>
-          <div className="flex items-center gap-2">
-            <NeuButton variant="ghost" className="text-xs" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              Previous
-            </NeuButton>
-            <NeuButton variant="ghost" className="text-xs" disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-              Next
-            </NeuButton>
-          </div>
+        <div className="flex items-center justify-center gap-4 pt-12">
+          <button 
+            disabled={page <= 1} 
+            onClick={() => setPage(p => p - 1)}
+            className="h-12 px-6 rounded-xl bg-white/5 text-[10px] font-black text-white uppercase tracking-widest disabled:opacity-30"
+          >
+            ← Back
+          </button>
+          <span className="text-[10px] font-black text-white uppercase tracking-widest">Vector {page} / {totalPages}</span>
+          <button 
+            disabled={page >= totalPages} 
+            onClick={() => setPage(p => p + 1)}
+            className="h-12 px-6 rounded-xl bg-white/5 text-[10px] font-black text-white uppercase tracking-widest disabled:opacity-30"
+          >
+            Next →
+          </button>
         </div>
       )}
 

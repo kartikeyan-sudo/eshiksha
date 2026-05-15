@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import { EbookCard } from "@/components/ebook/EbookCard";
 import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
@@ -30,26 +30,6 @@ function getCategoryIcon(name: string): string {
   return CATEGORY_ICONS[name] || "📖";
 }
 
-function RatingStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  const empty = 5 - full - (half ? 1 : 0);
-  const starSize = size === "md" ? "text-base" : "text-xs";
-
-  return (
-    <span className={`rating-stars ${starSize}`} aria-label={`${rating.toFixed(1)} out of 5 stars`}>
-      {Array.from({ length: full }, (_, i) => (
-        <span key={`f-${i}`} className="rating-star filled">★</span>
-      ))}
-      {half && <span className="rating-star filled">★</span>}
-      {Array.from({ length: empty }, (_, i) => (
-        <span key={`e-${i}`} className="rating-star">★</span>
-      ))}
-      <span className="ml-1 text-xs text-[var(--text-muted)]">{rating.toFixed(1)}</span>
-    </span>
-  );
-}
-
 export default function Home() {
   const [ebooks, setEbooks] = useState<Ebook[]>([]);
   const [trending, setTrending] = useState<Ebook[]>([]);
@@ -57,6 +37,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -73,6 +54,15 @@ export default function Home() {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Auto-slide logic
+  useEffect(() => {
+    if (trending.length === 0) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % Math.min(trending.length, 5));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [trending]);
 
   const categories = useMemo(() => {
     const cats = Array.from(new Set(ebooks.map((item) => item.category || "General"))).sort((a, b) =>
@@ -94,200 +84,181 @@ export default function Home() {
     });
   }, [ebooks, category, debouncedSearch]);
 
-  const newReleases = useMemo(() => {
-    return [...ebooks].sort((a, b) => b.id - a.id).slice(0, 8);
-  }, [ebooks]);
-
-  const topRated = useMemo(() => {
-    return [...ebooks]
-      .filter((item) => (item.averageRating || 0) > 0)
-      .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
-      .slice(0, 8);
-  }, [ebooks]);
+  const featuredSlides = trending.slice(0, 5);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-6 pb-24 md:px-8 md:pb-8">
-      {/* ═══════ PREMIUM MATTE HERO ═══════ */}
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-24 animate-fade-in shadow-2xl">
-        {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-[var(--accent)]/10 blur-[100px] md:blur-[140px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+    <div className="relative min-h-screen">
+      <div className="nebula-bg" />
+      
+      <div className="mx-auto w-full max-w-7xl space-y-24 px-4 py-8 pb-24 md:px-8 md:pb-8">
         
-        <div className="relative z-10 max-w-3xl">
-          <div className="mb-8 inline-flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-5 py-2.5 text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase backdrop-blur-md">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_10px_var(--accent)]" />
-            Universal Protocol v2.0
-          </div>
-          
-          <h1 className="text-5xl md:text-8xl font-black leading-[1] text-white tracking-tighter uppercase">
-            ELEVATE YOUR 
-            <br />
-            <span className="text-[var(--text-muted)]">KNOWLEDGE.</span>
-          </h1>
-          
-          <p className="mt-8 max-w-lg text-lg md:text-xl leading-relaxed text-[var(--text-secondary)] font-medium">
-            The elite digital library for curated protocols, academic insights, and strategic learning.
-          </p>
-          
-          <div className="mt-12 flex flex-wrap gap-4">
-            <Link
-              href="#featured"
-              className="px-10 py-5 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest transition-all hover:scale-[1.05] active:scale-[0.95] shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
-            >
-              BROWSE COLLECTION
-            </Link>
-            <Link
-              href="/library"
-              className="px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm uppercase tracking-widest transition-all hover:bg-white/10"
-            >
-              MY VAULT →
-            </Link>
-          </div>
-        </div>
-      </section>
+        {/* ═══════ PREMIUM SLIDESHOW HERO ═══════ */}
+        <section className="relative h-[600px] md:h-[700px] w-full overflow-hidden rounded-[3rem] bg-[#050505] border border-white/5 shadow-2xl">
+          {featuredSlides.length > 0 ? (
+            featuredSlides.map((ebook, index) => (
+              <div
+                key={ebook.id}
+                className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                  index === currentSlide ? "opacity-100 scale-100 z-10" : "opacity-0 scale-110 z-0"
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent z-10" />
+                <img src={ebook.coverUrl} className="h-full w-full object-cover blur-[2px] opacity-40" />
+                
+                <div className="absolute inset-0 flex flex-col justify-center p-8 md:p-20 z-20 space-y-6 md:space-y-8 max-w-4xl">
+                  <div className="inline-flex items-center gap-3 rounded-full bg-[var(--accent)]/20 border border-[var(--accent)]/30 px-4 py-2 text-[10px] font-black tracking-[0.2em] text-[var(--accent)] uppercase backdrop-blur-md">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
+                    Featured Protocol
+                  </div>
+                  <h2 className="text-4xl md:text-8xl font-black leading-[0.9] text-white tracking-tighter uppercase line-clamp-2">
+                    {ebook.title}
+                  </h2>
+                  <p className="max-w-xl text-sm md:text-xl text-[var(--text-secondary)] font-medium line-clamp-3 md:line-clamp-none">
+                    {ebook.description}
+                  </p>
+                  <div className="flex items-center gap-4 pt-4">
+                    <Link href={`/ebook/${ebook.id}`}>
+                      <button className="px-10 py-5 rounded-2xl bg-white text-black font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.05] active:scale-[0.95]">
+                        Access Data →
+                      </button>
+                    </Link>
+                    <div className="hidden md:block">
+                      <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest">Protocol Value</p>
+                      <p className="text-xl font-black text-white">INR {ebook.price}</p>
+                    </div>
+                  </div>
+                </div>
 
-      {/* ═══════ SEARCH + FILTER BAR ═══════ */}
-      <section id="featured" className="space-y-4 animate-slide-up" style={{ animationDelay: "50ms" }}>
-        <div className="flex items-center justify-between">
-          <h2 className="section-title">
-            <span>📖</span> Featured Ebooks
-          </h2>
-          <span className="text-sm text-[var(--text-muted)]">
-            {loading ? "Loading..." : `${filtered.length} titles`}
-          </span>
-        </div>
+                <div className="absolute right-12 bottom-12 hidden lg:block z-30">
+                   <div className="relative h-96 w-72 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 group">
+                      <img src={ebook.coverUrl} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                   </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+               <div className="w-12 h-12 border-4 border-white/10 border-t-[var(--accent)] rounded-full animate-spin" />
+            </div>
+          )}
 
-        <div className="glass-surface rounded-2xl p-4 space-y-3">
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by title, description, or tag..."
-              className="w-full rounded-xl border border-[var(--glass-border)] bg-transparent py-3 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none transition-colors"
-            />
+          {/* Slide Indicators */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex gap-3">
+             {featuredSlides.map((_, idx) => (
+               <button 
+                key={idx} 
+                onClick={() => setCurrentSlide(idx)}
+                className={`h-1.5 transition-all duration-500 rounded-full ${idx === currentSlide ? 'w-12 bg-white' : 'w-4 bg-white/20'}`} 
+               />
+             ))}
           </div>
-          <div className="flex flex-wrap gap-2">
+        </section>
+
+        {/* ═══════ SEARCH + DISCOVERY ═══════ */}
+        <section id="featured" className="space-y-12 animate-fade-in">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-3">
+               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-[var(--accent)] uppercase tracking-widest">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                  Main Collection
+               </div>
+               <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter">Discover Data</h2>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+               <div className="relative w-full sm:w-80 h-14">
+                  <input
+                    type="search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search by ID, Category, Tag..."
+                    className="w-full h-full bg-white/5 border border-white/5 rounded-2xl px-12 text-sm text-white focus:border-[var(--accent)] outline-none transition-all placeholder:text-[var(--text-muted)] placeholder:uppercase placeholder:font-black placeholder:text-[9px] placeholder:tracking-widest"
+                  />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">🔍</div>
+               </div>
+            </div>
+          </div>
+
+          <div className="flex overflow-x-auto gap-3 pb-4 no-scrollbar">
             {categories.map((value) => (
               <button
                 key={value}
-                type="button"
                 onClick={() => setCategory(value)}
-                className={`category-chip ${value === category ? "active" : ""}`}
+                className={`h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                  value === category ? "bg-white text-black shadow-[0_10px_30px_rgba(255,255,255,0.1)]" : "bg-white/5 text-[var(--text-muted)] hover:bg-white/10 hover:text-white"
+                }`}
               >
-                {value !== "All" && <span className="chip-icon">{getCategoryIcon(value)}</span>}
+                {value !== "All" && <span className="mr-2 opacity-60">{getCategoryIcon(value)}</span>}
                 {value}
               </button>
             ))}
           </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <SkeletonLoader shape="card" count={8} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
+              {filtered.map((item) => (
+                <div key={item.id}>
+                  <EbookCard ebook={item} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* ═══════ TRENDING / CATEGORIES ═══════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+           <section className="lg:col-span-8 space-y-8">
+              <div className="flex items-center gap-3">
+                 <span className="text-2xl">🔥</span>
+                 <h2 className="text-2xl font-black text-white uppercase tracking-tight">Active Protocols</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                 {trending.slice(0, 4).map(item => (
+                    <EbookCard key={item.id} ebook={item} compact />
+                 ))}
+              </div>
+           </section>
+
+           <section className="lg:col-span-4 space-y-8">
+              <div className="flex items-center gap-3">
+                 <span className="text-2xl">🏷️</span>
+                 <h2 className="text-2xl font-black text-white uppercase tracking-tight">Taxonomy</h2>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                 {categories.filter(c => c !== 'All').map(cat => (
+                    <button 
+                      key={cat}
+                      onClick={() => {
+                        setCategory(cat);
+                        document.getElementById("featured")?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="px-6 py-4 rounded-2xl bg-[#0a0a0a] border border-white/5 hover:border-[var(--accent)] transition-all flex items-center gap-3"
+                    >
+                       <span className="text-xl">{getCategoryIcon(cat)}</span>
+                       <span className="text-[10px] font-black text-white uppercase tracking-widest">{cat}</span>
+                    </button>
+                 ))}
+              </div>
+           </section>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <SkeletonLoader shape="card" count={4} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
-            {filtered.map((item) => (
-              <div key={item.id}>
-                <EbookCard ebook={item} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ═══════ TRENDING BOOKS ═══════ */}
-      {trending.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "80ms" }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <span>🔥</span> Trending Books
-            </h2>
-            <span className="text-sm text-[var(--text-muted)]">Based on purchases + views</span>
-          </div>
-          <div className="horizontal-scroll">
-            {trending.map((item, index) => (
-              <div key={item.id} className="w-64 flex-shrink-0" style={{ animationDelay: `${index * 60}ms` }}>
-                <EbookCard ebook={item} compact />
-              </div>
-            ))}
-          </div>
+        {/* ═══════ FOOTER CTA ═══════ */}
+        <section className="relative overflow-hidden rounded-[3rem] bg-[var(--accent)] p-12 md:p-24 text-center">
+           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+           <div className="relative z-10 space-y-8">
+              <h2 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-none">Complete your<br />Digital Vault</h2>
+              <p className="text-white/80 font-medium max-w-lg mx-auto text-lg uppercase tracking-tight">Secure your access to the world's most elite protocol library today.</p>
+              <button className="px-12 py-6 rounded-[2rem] bg-black text-white font-black text-sm uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl">
+                 Initialize Access
+              </button>
+           </div>
         </section>
-      )}
 
-      {/* ═══════ CATEGORIES SECTION ═══════ */}
-      <section id="categories" className="space-y-4 animate-slide-up" style={{ animationDelay: "120ms" }}>
-        <div className="section-header">
-          <h2 className="section-title">
-            <span>🏷️</span> Browse by Category
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {categories
-            .filter((c) => c !== "All")
-            .map((cat) => {
-              const count = ebooks.filter((e) => (e.category || "General") === cat).length;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => {
-                    setCategory(cat);
-                    document.getElementById("featured")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="premium-card flex flex-col items-center gap-2 p-5 text-center cursor-pointer"
-                >
-                  <span className="text-3xl">{getCategoryIcon(cat)}</span>
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">{cat}</span>
-                  <span className="text-xs text-[var(--text-muted)]">{count} ebook{count !== 1 ? "s" : ""}</span>
-                </button>
-              );
-            })}
-        </div>
-      </section>
-
-      {/* ═══════ NEW RELEASES ═══════ */}
-      {newReleases.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "160ms" }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <span>🆕</span> New Releases
-            </h2>
-          </div>
-          <div className="horizontal-scroll">
-            {newReleases.map((item, index) => (
-              <div key={item.id} className="w-64 flex-shrink-0" style={{ animationDelay: `${index * 60}ms` }}>
-                <EbookCard ebook={item} compact />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ═══════ TOP RATED ═══════ */}
-      {topRated.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "200ms" }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <span>⭐</span> Top Rated
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
-            {topRated.map((item) => (
-              <div key={item.id}>
-                <EbookCard ebook={item} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      </div>
     </div>
   );
 }

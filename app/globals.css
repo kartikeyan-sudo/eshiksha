@@ -11,8 +11,8 @@
   --surface-raised: #121212;
   --surface-hover: #161616;
   
-  /* Universal Accent — Indigo/Violet Glow */
   --accent: #6366f1;
+  --accent-secondary: #8b5cf6;
   --accent-hover: #818cf8;
   --accent-soft: rgba(99, 102, 241, 0.15);
   --accent-glow: rgba(99, 102, 241, 0.4);
@@ -29,7 +29,26 @@
   --warning: #f59e0b;
   
   --font-inter: "Inter", sans-serif;
-  --font-satoshi: "Satoshi", sans-serif;
+}
+
+[data-theme="light"] {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-raised: #f1f5f9;
+  --surface-hover: #e2e8f0;
+  
+  --accent: #4f46e5;
+  --accent-secondary: #7c3aed;
+  --accent-hover: #4338ca;
+  --accent-soft: rgba(79, 70, 229, 0.1);
+  --accent-glow: rgba(79, 70, 229, 0.2);
+  
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --glass: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(0, 0, 0, 0.05);
 }
 
 @theme inline {
@@ -189,24 +208,35 @@ body {
   background: var(--surface);
   border: 1px solid var(--glass-border);
 }
-/* --- Responsive Utilities --- */
-@media (max-width: 640px) {
-  .section-title {
-    font-size: 1.25rem;
-    padding-left: 1rem;
-  }
-  
-  .premium-card {
-    border-radius: 0.75rem;
-  }
+/* --- Nebula Background --- */
+.nebula-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
+  filter: blur(60px);
+  animation: nebula-drift 20s ease-in-out infinite alternate;
 }
 
-.stagger-children > * {
-  animation: fade-in 0.5s ease forwards;
-  opacity: 0;
+@keyframes nebula-drift {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.1) translate(2%, 2%); }
 }
 
-.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.25s; }
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
