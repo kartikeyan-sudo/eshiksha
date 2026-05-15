@@ -47,7 +47,12 @@ async function apiRequest<T>(path: string, options: FetchOptions = {}): Promise<
     headers.set("Authorization", `Bearer ${options.token}`);
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const url = new URL(`${API_BASE}${path}`);
+  if (options.method === "POST" || options.method === "PATCH") {
+    url.searchParams.set("_t", Date.now().toString());
+  }
+  
+  const response = await fetch(url.toString(), {
     method: options.method || "GET",
     headers,
     body: options.body ?? null,

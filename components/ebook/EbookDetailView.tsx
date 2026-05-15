@@ -215,6 +215,7 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
         throw new Error("Could not load payment gateway. Please try again.");
       }
 
+      // Request fresh order state from backend (respects real-time UPI/Razorpay toggle)
       const order = await createRazorpayOrder(ebook.id, token);
 
       if (order.alreadyPurchased || order.isFree) {

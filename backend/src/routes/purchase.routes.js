@@ -45,12 +45,11 @@ router.post(
     }
 
     // Check payment mode
-    const settingsResult = await pool.query(
-      "SELECT key, value FROM settings WHERE key IN ('payment_mode', 'admin_upi_id')"
-    );
+    const settingsResult = await pool.query("SELECT key, value FROM settings");
     const settings = {};
     settingsResult.rows.forEach(r => settings[r.key] = String(r.value || "").trim().toLowerCase());
     
+    // Check if UPI is selected. We check for 'upi' specifically.
     const isUpiOnly = settings.payment_mode === 'upi';
 
     if (!isUpiOnly && !ensureRazorpayConfigured(res)) {
