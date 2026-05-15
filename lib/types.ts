@@ -31,6 +31,7 @@ export type Ebook = {
   coverUrl: string;
   hasPurchased?: boolean;
   isPaymentReview?: boolean;
+  previewUrl?: string;
 };
 
 export type EbookAccess = {

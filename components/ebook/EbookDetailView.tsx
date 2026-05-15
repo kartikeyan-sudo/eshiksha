@@ -224,7 +224,7 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
       {/* Preview Section */}
       <section className="space-y-8 border-t-4 border-black pt-16">
          <h2 className="text-5xl font-['Anton']">Intel Preview</h2>
-         <div className="brutalist-card p-2 bg-gray-200 border-4 border-black shadow-[8px_8px_0px_black]">
+         <div className="brutalist-card p-2 bg-gray-50 border-4 border-black shadow-[8px_8px_0px_black]">
             <EmbedPdfPreview
                fileUrl={accessInfo.pdfUrl || ebook.previewUrl || ""}
                title={ebook.title}

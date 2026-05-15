@@ -20,7 +20,10 @@ export function EmbedPdfPreview({ fileUrl, title, previewPages, onUnlockRequest,
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!containerRef.current || !fileUrl) return;
+    if (!containerRef.current || !fileUrl) {
+      setLoading(false);
+      return;
+    }
 
     let isMounted = true;
     let app: ViewerApp | null = null;
@@ -28,6 +31,7 @@ export function EmbedPdfPreview({ fileUrl, title, previewPages, onUnlockRequest,
 
     const fetchPdf = async () => {
       setLoading(true);
+      setError("");
       try {
         const headers: Record<string, string> = {};
         if (token) {
@@ -35,7 +39,7 @@ export function EmbedPdfPreview({ fileUrl, title, previewPages, onUnlockRequest,
         }
 
         const res = await fetch(fileUrl, { headers });
-        if (!res.ok) throw new Error("Could not load secure document preview.");
+        if (!res.ok) throw new Error("Access Denied: Could not synchronize preview stream.");
         
         const blob = await res.blob();
         if (!isMounted) return;
@@ -50,7 +54,7 @@ export function EmbedPdfPreview({ fileUrl, title, previewPages, onUnlockRequest,
 
         viewerAppRef.current = app;
       } catch (err: any) {
-        if (isMounted) setError(err.message || "Could not load document.");
+        if (isMounted) setError(err.message || "Protocol Failure.");
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -70,45 +74,52 @@ export function EmbedPdfPreview({ fileUrl, title, previewPages, onUnlockRequest,
   }, [fileUrl, token]);
 
   return (
-    <section className="relative overflow-hidden rounded-[2rem] bg-[#0a0a0a] border border-white/5 shadow-2xl">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 p-6 bg-white/5 backdrop-blur-md">
+    <div className="brutalist-card bg-white border-2 border-black overflow-hidden flex flex-col">
+      <header className="border-b-2 border-black p-6 bg-gray-50 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-white uppercase tracking-tighter">Preview Protocol</h3>
-          <p className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-widest">Digital Insights: {title}</p>
+           <h3 className="text-2xl font-['Anton'] uppercase tracking-tight">Intel Preview</h3>
+           <p className="font-['Bebas_Neue'] text-sm text-gray-500 uppercase tracking-widest">Protocol: {title}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-[var(--accent)]/10 px-3 py-1.5 text-[10px] font-black text-[var(--accent)] uppercase tracking-widest border border-[var(--accent)]/20">
-            {previewPages} Pages Unlocked
-          </span>
-          <button
-            type="button"
-            onClick={onUnlockRequest}
-            className="rounded-xl bg-white px-5 py-2 text-[10px] font-black text-black uppercase tracking-widest transition-all hover:scale-[1.05] active:scale-[0.95]"
-          >
-            Unlock Full
-          </button>
+        <div className="flex items-center gap-4">
+           <span className="px-3 py-1 border-2 border-black bg-white font-['Bebas_Neue'] text-xs uppercase tracking-widest">
+             {previewPages} Pages Unlocked
+           </span>
+           <button
+             type="button"
+             onClick={onUnlockRequest}
+             className="brutalist-button accent py-2 px-4 text-sm"
+           >
+             Unlock Full Data
+           </button>
         </div>
       </header>
 
-      <div className="h-[600px] w-full bg-[#050505] relative">
+      <div className="h-[650px] w-full bg-gray-200 relative">
         <div ref={containerRef} className="w-full h-full"></div>
         
         {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#050505]/80 backdrop-blur-sm z-10">
-             <div className="w-12 h-12 border-4 border-white/10 border-t-[var(--accent)] rounded-full animate-spin mb-4" />
-             <p className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em]">Synchronizing Stream...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 z-10">
+             <div className="text-4xl animate-bounce">📡</div>
+             <p className="font-['Bebas_Neue'] text-xl uppercase tracking-[0.2em] mt-4">Synchronizing Preview Stream...</p>
           </div>
         )}
 
-        {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#050505] z-20">
-             <div className="text-4xl mb-4">⚠️</div>
-             <p className="text-sm font-black text-white uppercase tracking-tight mb-2">Decryption Error</p>
-             <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest">{error}</p>
+        {(error || !fileUrl) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-gray-100 z-20">
+             <div className="text-6xl mb-6">🚫</div>
+             <h4 className="text-3xl font-['Anton'] uppercase mb-2">{error ? "SYNC ERROR" : "NO PROTOCOL"}</h4>
+             <p className="font-['Bebas_Neue'] text-lg text-gray-500 uppercase tracking-widest">
+               {error || "No preview data available for this identifier."}
+             </p>
+             {!fileUrl && (
+               <button onClick={onUnlockRequest} className="mt-8 brutalist-button primary">
+                  Initialize Acquisition
+               </button>
+             )}
           </div>
         )}
       </div>
       <NeuToast message={error} open={!!error} variant="error" onClose={() => setError("")} />
-    </section>
+    </div>
   );
 }
