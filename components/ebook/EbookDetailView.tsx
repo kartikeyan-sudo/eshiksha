@@ -331,7 +331,6 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   return (
     <div className="space-y-10 animate-fade-in">
       {/* ═══════ MAIN DETAIL SECTION ═══════ */}
-    <div className="space-y-12 animate-fade-in">
       {/* ═══════ PREMIUM MATTE DETAIL ═══════ */}
       <section className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
         {/* Left: Cover */}
