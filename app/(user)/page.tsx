@@ -107,55 +107,40 @@ export default function Home() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-6 pb-24 md:px-8 md:pb-8">
-      {/* ═══════ HERO SECTION ═══════ */}
-      <section className="hero-section animate-fade-in p-8 md:p-14">
-        <div className="relative z-10 max-w-2xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
-            <span className="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-            Premium Ebook Platform
+      {/* ═══════ PREMIUM MATTE HERO ═══════ */}
+      <section className="relative overflow-hidden rounded-3xl bg-[#0a0a0a] border border-white/5 p-8 md:p-20 animate-fade-in shadow-2xl">
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--accent)]/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        
+        <div className="relative z-10 max-w-3xl">
+          <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]" />
+            Universal Protocol v2.0
           </div>
-          <h1 className="text-4xl font-extrabold leading-tight text-white md:text-6xl">
-            Read, Learn,
+          
+          <h1 className="text-5xl font-black leading-[1.1] text-white md:text-7xl tracking-tighter">
+            ELEVATE YOUR 
             <br />
-            <span className="text-white/90">Grow.</span>
+            <span className="text-[var(--text-muted)]">KNOWLEDGE.</span>
           </h1>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-white/80 md:text-lg">
-            Discover curated ebooks, preview before you buy, and unlock full access to build your skills.
+          
+          <p className="mt-6 max-w-lg text-lg leading-relaxed text-[var(--text-secondary)] font-medium">
+            The elite digital library for curated protocols, academic insights, and strategic learning.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          
+          <div className="mt-10 flex flex-wrap gap-4">
             <Link
               href="#featured"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[var(--accent)] shadow-lg transition-transform hover:scale-105"
+              className="px-8 py-4 rounded-2xl bg-white text-black font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(255,255,255,0.2)]"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-              </svg>
-              Start Reading
+              BROWSE COLLECTION
             </Link>
             <Link
               href="/library"
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-white/30 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10"
+              className="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm transition-all hover:bg-white/10"
             >
-              My Library →
+              MY VAULT →
             </Link>
-          </div>
-
-          {/* Stats */}
-          <div className="mt-10 flex flex-wrap gap-8">
-            {[
-              { label: "Published Ebooks", value: ebooks.length.toString(), icon: "📚" },
-              { label: "Secure Auth", value: "JWT", icon: "🔐" },
-              { label: "Signed Delivery", value: "S3", icon: "☁️" },
-            ].map((stat) => (
-              <div key={stat.label} className="flex items-center gap-2">
-                <span className="text-2xl">{stat.icon}</span>
-                <div>
-                  <p className="text-lg font-bold text-white">{stat.value}</p>
-                  <p className="text-xs text-white/60">{stat.label}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

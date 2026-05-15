@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeInitializer } from "../components/layout/ThemeInitializer";
 import { GlobalLoader } from "../components/layout/GlobalLoader";
+import { SplashLoader } from "../components/ui/SplashLoader";
 
 function toOrigin(url: string) {
   try {
@@ -75,6 +76,7 @@ export default function RootLayout({
         ))}
       </head>
       <body className="min-h-full">
+        <SplashLoader />
         <ThemeInitializer />
         <GlobalLoader />
         <div className="relative">

@@ -1,1237 +1,150 @@
 @import "tailwindcss";
 
 /* ========================================================
-   EShikhsha — Universal Premium Ebook Platform
-   Clean, professional, high-conversion Scribd-like aesthetic
+   EShikhsha — Premium Matte Universal Design System
+   Minimal, Cinematic, High-End Professional Aesthetic
    ======================================================== */
 
-/* --- Light Theme --- */
-:root,
-[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f7fd;
-  --bg-gradient-from: #ebf3ff;
-  --bg-gradient-to: #f8fbff;
-  --surface: rgba(255, 255, 255, 0.84);
-  --surface-hover: rgba(255, 255, 255, 0.96);
-  --surface-raised: rgba(255, 255, 255, 0.92);
-  --glass: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(37, 99, 235, 0.16);
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: rgba(37, 99, 235, 0.12);
-  --accent-secondary: #0ea5e9;
-  --neu-shadow-dark: rgba(15, 23, 42, 0.12);
-  --neu-shadow-light: rgba(255, 255, 255, 0.92);
+:root {
+  --bg: #050505;
+  --surface: #0a0a0a;
+  --surface-raised: #121212;
+  --surface-hover: #161616;
+  
+  /* Universal Accent — Indigo/Violet Glow */
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-soft: rgba(99, 102, 241, 0.15);
+  --accent-glow: rgba(99, 102, 241, 0.4);
+  
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+  
+  --glass: rgba(10, 10, 10, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  
   --danger: #ef4444;
-  --success: #16a34a;
-  --info: #2563eb;
+  --success: #22c55e;
   --warning: #f59e0b;
-  --card-bg: rgba(255, 255, 255, 0.86);
-  --input-bg: rgba(255, 255, 255, 0.68);
-  --overlay: rgba(2, 6, 23, 0.45);
-  --hero-gradient-1: #1d4ed8;
-  --hero-gradient-2: #0284c7;
-  --hero-gradient-3: #06b6d4;
-  --star-color: #f59e0b;
-  --star-empty: #d1d5db;
-  --bottom-nav-bg: rgba(255, 255, 255, 0.94);
-  --reader-bg: #ffffff;
-  --reader-text: #0f172a;
+  
+  --font-inter: "Inter", sans-serif;
+  --font-satoshi: "Satoshi", sans-serif;
 }
 
-/* --- Dark Theme --- */
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #030712;
-  --bg-gradient-from: #020617;
-  --bg-gradient-to: #0b1120;
-  --surface: rgba(15, 23, 42, 0.8);
-  --surface-hover: rgba(30, 41, 59, 0.9);
-  --surface-raised: rgba(30, 41, 59, 0.7);
-  --glass: rgba(15, 23, 42, 0.7);
-  --glass-border: rgba(125, 211, 252, 0.16);
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --accent-soft: rgba(96, 165, 250, 0.15);
-  --accent-secondary: #22d3ee;
-  --neu-shadow-dark: rgba(2, 6, 23, 0.5);
-  --neu-shadow-light: rgba(56, 189, 248, 0.08);
-  --danger: #f87171;
-  --success: #4ade80;
-  --info: #60a5fa;
-  --warning: #fbbf24;
-  --card-bg: rgba(15, 23, 42, 0.76);
-  --input-bg: rgba(15, 23, 42, 0.68);
-  --overlay: rgba(2, 6, 23, 0.7);
-  --hero-gradient-1: #1d4ed8;
-  --hero-gradient-2: #0369a1;
-  --hero-gradient-3: #0f766e;
-  --star-color: #fbbf24;
-  --star-empty: #475569;
-  --bottom-nav-bg: rgba(2, 6, 23, 0.95);
-  --reader-bg: #0f172a;
-  --reader-text: #e2e8f0;
-}
-
-/* --- Tailwind v4 theme bridge --- */
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text-primary);
   --font-sans: var(--font-inter);
-  --font-mono: var(--font-space-grotesk);
 }
 
 /* --- Base --- */
-* {
-  box-sizing: border-box;
-}
-
-html,
 body {
-  min-height: 100%;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
+  background-color: var(--bg);
   color: var(--text-primary);
-  background: linear-gradient(150deg, var(--bg-gradient-from) 0%, var(--bg-gradient-to) 100%);
-  background-attachment: fixed;
-  font-family: var(--font-inter), system-ui, sans-serif;
-  line-height: 1.5;
-  text-rendering: optimizeLegibility;
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  position: relative;
-  isolation: isolate;
 }
 
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  pointer-events: none;
-  z-index: -1;
-}
-
-body::before {
-  top: -18rem;
-  right: -10rem;
-  width: 34rem;
-  height: 34rem;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.18) 0%, rgba(14, 165, 233, 0) 70%);
-}
-
-body::after {
-  bottom: -16rem;
-  left: -12rem;
-  width: 36rem;
-  height: 36rem;
-  border-radius: 9999px;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 70%);
-}
-
-a {
-  color: inherit;
-}
-
-img,
-canvas {
-  display: block;
-}
-
-input,
-textarea,
-select,
-button {
-  font: inherit;
-}
-
-input,
-textarea,
-select {
-  color: var(--text-primary);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted);
-}
-
-::selection {
-  background: var(--accent-soft);
-  color: var(--text-primary);
-}
-
-select option {
-  color: #0f172a;
-  background: #f8fbff;
-}
-
-[data-theme="dark"] select option {
-  color: #e2e8f0;
-  background: #0f172a;
-}
-
-/* ========================================================
-   Glassmorphism Surfaces
-   ======================================================== */
+/* --- Glassmorphism --- */
 .glass-surface {
   background: var(--glass);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
 }
 
 .glass-navbar {
-  background: var(--surface);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.08);
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--glass-border);
 }
 
-.glass-modal-backdrop {
-  background: var(--overlay);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+/* --- Animations --- */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ========================================================
-   Neumorphism Surfaces (Refined — less heavy)
-   ======================================================== */
-.neu-raised {
-  background: var(--card-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    0 8px 24px var(--neu-shadow-dark),
-    0 0 0 1px var(--glass-border);
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 5px var(--accent-glow); }
+  50% { box-shadow: 0 0 20px var(--accent-glow); }
+  100% { box-shadow: 0 0 5px var(--accent-glow); }
 }
 
-.neu-inset {
-  background: var(--input-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow: inset 0 1px 4px var(--neu-shadow-dark);
+.animate-fade-in {
+  animation: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ========================================================
-   Interactive: Buttons
-   ======================================================== */
-.neu-btn {
-  border: 1px solid var(--glass-border);
-  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease;
-  box-shadow: 0 4px 14px var(--neu-shadow-dark);
-}
-
-.neu-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: var(--accent);
-  box-shadow:
-    0 10px 24px var(--neu-shadow-dark),
-    0 0 0 3px var(--accent-soft);
-}
-
-.neu-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.98);
-  box-shadow: inset 0 2px 4px var(--neu-shadow-dark);
-}
-
-/* ========================================================
-   Premium Card Hover
-   ======================================================== */
-.neu-card-hover {
-  transition: transform 260ms cubic-bezier(0.22, 0.68, 0, 1), box-shadow 260ms ease, border-color 260ms ease;
-}
-
-.neu-card-hover:hover {
-  transform: translateY(-6px) scale(1.01);
-  box-shadow:
-    0 12px 40px var(--neu-shadow-dark),
-    0 0 0 1px var(--accent-soft);
-  border-color: var(--accent-soft);
-}
-
-/* ========================================================
-   Premium Card (New)
-   ======================================================== */
+/* --- Components --- */
 .premium-card {
-  background: var(--card-bg);
+  background: var(--surface);
   border: 1px solid var(--glass-border);
-  border-radius: 1.25rem;
-  overflow: hidden;
-  transition: transform 280ms cubic-bezier(0.22, 0.68, 0, 1), box-shadow 280ms ease, border-color 280ms ease;
-  box-shadow: 0 8px 24px var(--neu-shadow-dark);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
 }
 
 .premium-card:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 18px 44px var(--neu-shadow-dark),
-    0 0 0 1px var(--accent-soft);
-  border-color: var(--accent);
-}
-
-/* ========================================================
-   Ebook Card Price Badges (Tailwind v4 compatible)
-   ======================================================== */
-.ebook-card-price-free {
-  background: rgba(22, 163, 74, 0.9);
-  color: #fff;
-}
-
-[data-theme="dark"] .ebook-card-price-free {
-  background: rgba(74, 222, 128, 0.9);
-  color: #0f172a;
-}
-
-.ebook-card-price-paid {
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--accent);
-}
-
-[data-theme="dark"] .ebook-card-price-paid {
-  background: rgba(15, 23, 42, 0.85);
-  color: var(--accent);
-}
-
-/* ========================================================
-   Ebook Detail View — Premium Layout
-   ======================================================== */
-.ebook-detail-hero {
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: 1fr;
-  align-items: start;
-}
-
-@media (min-width: 768px) {
-  .ebook-detail-hero {
-    grid-template-columns: 320px 1fr;
-  }
-}
-
-@media (min-width: 1024px) {
-  .ebook-detail-hero {
-    grid-template-columns: 360px 1fr;
-    gap: 2.5rem;
-  }
-}
-
-/* Cover */
-.ebook-detail-cover {
-  position: sticky;
-  top: 6rem;
-}
-
-.ebook-cover-wrapper {
-  position: relative;
-  border-radius: 1.25rem;
-  overflow: hidden;
-  background: var(--card-bg);
-  border: 1px solid var(--glass-border);
-  box-shadow:
-    0 20px 60px var(--neu-shadow-dark),
-    0 0 0 1px var(--glass-border);
-  aspect-ratio: 3 / 4;
-}
-
-.ebook-cover-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 600ms cubic-bezier(0.22, 0.68, 0, 1);
-}
-
-.ebook-cover-wrapper:hover .ebook-cover-img {
-  transform: scale(1.05);
-}
-
-.ebook-cover-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1.5rem;
-  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.ebook-price-float {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--accent);
-  padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  font-weight: 800;
-  font-size: 1rem;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-}
-
-.ebook-price-float.free {
-  background: rgba(22, 163, 74, 0.95);
-  color: #fff;
-}
-
-[data-theme="dark"] .ebook-price-float {
-  background: rgba(15, 23, 42, 0.9);
-}
-
-[data-theme="dark"] .ebook-price-float.free {
-  background: rgba(74, 222, 128, 0.9);
-  color: #0f172a;
-}
-
-/* Info Panel */
-.ebook-detail-info {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: var(--glass);
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
-  border: 1px solid var(--glass-border);
-  border-radius: 1.5rem;
-  padding: 1.75rem;
-  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
-}
-
-@media (min-width: 768px) {
-  .ebook-detail-info {
-    padding: 2.25rem;
-    gap: 1.25rem;
-  }
-}
-
-.ebook-detail-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-}
-
-@media (min-width: 768px) {
-  .ebook-detail-title {
-    font-size: 2.25rem;
-  }
-}
-
-.ebook-detail-desc {
-  font-size: 0.9375rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-}
-
-.ebook-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 600;
-  transition: background 200ms ease, transform 200ms ease;
-}
-
-.ebook-tag:hover {
-  transform: translateY(-1px);
-  background: var(--accent);
-  color: #fff;
-}
-
-.ebook-detail-stats {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
-}
-
-.ebook-stat-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  background: var(--card-bg);
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.625rem;
-  border: 1px solid var(--glass-border);
-}
-
-.ebook-detail-divider {
-  height: 1px;
-  background: var(--glass-border);
-  margin: 0.5rem 0;
-}
-
-/* Actions */
-.ebook-detail-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.ebook-price-section {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.ebook-price-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-}
-
-.ebook-price-value {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1;
-}
-
-.ebook-action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-@media (min-width: 640px) {
-  .ebook-action-buttons {
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-}
-
-.ebook-buy-btn {
-  flex: 1;
-  min-width: 160px;
-  padding-top: 0.875rem !important;
-  padding-bottom: 0.875rem !important;
-  font-size: 0.9375rem !important;
-  font-weight: 700 !important;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%) !important;
-  color: #fff !important;
-  border: none !important;
-  box-shadow: 0 8px 30px rgba(37, 99, 235, 0.3) !important;
-}
-
-.ebook-buy-btn:hover:not(:disabled) {
-  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.4) !important;
-  transform: translateY(-2px) !important;
-}
-
-.ebook-buy-btn.review-mode {
-  background: var(--surface-raised) !important;
-  color: var(--text-muted) !important;
-  box-shadow: none !important;
-}
-
-.ebook-read-btn {
-  flex: 1;
-  min-width: 160px;
-  padding-top: 0.875rem !important;
-  padding-bottom: 0.875rem !important;
-  font-size: 0.9375rem !important;
-  font-weight: 600 !important;
-}
-
-.ebook-download-btn {
-  width: 100%;
-  padding-top: 0.75rem !important;
-  padding-bottom: 0.75rem !important;
-}
-
-/* ========================================================
-   Rating Stars
-   ======================================================== */
-.rating-stars {
-  display: inline-flex;
-  gap: 2px;
-  align-items: center;
-}
-
-.rating-star {
-  color: var(--star-empty);
-  font-size: 14px;
-  line-height: 1;
-}
-
-.rating-star.filled {
-  color: var(--star-color);
-}
-
-.rating-star.half {
-  position: relative;
-  color: var(--star-empty);
-}
-
-/* ========================================================
-   Category Chip
-   ======================================================== */
-.category-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  background: var(--card-bg);
-  border: 1px solid var(--glass-border);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 200ms ease;
-}
-
-.category-chip:hover,
-.category-chip.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.category-chip .chip-icon {
-  font-size: 18px;
-}
-
-/* ========================================================
-   Hero Section
-   ======================================================== */
-.hero-section {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.5rem;
-  background: linear-gradient(135deg, var(--hero-gradient-1) 0%, var(--hero-gradient-2) 50%, var(--hero-gradient-3) 100%);
-  background-size: 200% 200%;
-  animation: heroGradient 8s ease infinite;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-@keyframes heroGradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-/* ========================================================
-   Section Headers
-   ======================================================== */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.25rem;
-}
-
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* ========================================================
-   Horizontal Scroll Container
-   ======================================================== */
-.horizontal-scroll {
-  display: flex;
-  gap: 1rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 0.5rem;
-  scrollbar-width: none;
-}
-
-.horizontal-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.horizontal-scroll > * {
-  scroll-snap-align: start;
-  flex-shrink: 0;
-}
-
-/* ========================================================
-   Bottom Navigation (Mobile)
-   ======================================================== */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 8px 0 max(10px, env(safe-area-inset-bottom));
-  background: var(--bottom-nav-bg);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  border-top: 1px solid var(--glass-border);
-  box-shadow: 0 -8px 24px rgba(2, 6, 23, 0.1);
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 4px 12px;
-  border-radius: 12px;
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 200ms ease, background 200ms ease, transform 200ms ease;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.bottom-nav-item:hover,
-.bottom-nav-item.active {
-  color: var(--accent);
-  background: var(--accent-soft);
-  transform: translateY(-1px);
-}
-
-.bottom-nav-item svg {
-  width: 22px;
-  height: 22px;
-}
-
-/* ========================================================
-   Price Badge
-   ======================================================== */
-.price-badge {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.price-badge.free {
-  color: var(--success);
-}
-
-/* ========================================================
-   Stats Card (Admin)
-   ======================================================== */
-.stat-card {
-  background: var(--card-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: 1rem;
-  padding: 1.25rem;
-  transition: transform 200ms ease, box-shadow 200ms ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px var(--neu-shadow-dark);
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.2;
-}
-
-.stat-label {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-/* ========================================================
-   Transaction Feed
-   ======================================================== */
-.transaction-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border);
-  background: var(--card-bg);
-  transition: background 200ms ease;
-}
-
-.transaction-item:hover {
   background: var(--surface-hover);
+  border-color: var(--accent);
+  transform: translateY(-4px);
 }
 
-.transaction-amount {
-  font-weight: 700;
-  font-size: 0.9375rem;
-  color: var(--success);
-  white-space: nowrap;
+.neu-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-/* ========================================================
-   Reader Dark Mode
-   ======================================================== */
-.reader-dark {
-  --reader-bg: #1a1625;
-  --reader-text: #e8e4f0;
+.neu-btn-primary {
+  background: var(--accent);
+  color: white;
 }
 
-.reader-dark .react-pdf__Page canvas {
-  filter: invert(0.88) hue-rotate(180deg);
+.neu-btn-primary:hover {
+  background: var(--accent-hover);
+  transform: scale(1.02);
 }
 
-/* ========================================================
-   Toast animations
-   ======================================================== */
-.toast-enter {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-.toast-exit {
-  opacity: 0;
-  transform: translateY(12px) scale(0.95);
-  pointer-events: none;
-}
-
-/* ========================================================
-   Accordion
-   ======================================================== */
-.accordion-panel {
-  transition: max-height 250ms ease, opacity 200ms ease;
-  overflow: hidden;
-}
-
-.accordion-panel.closed {
-  max-height: 0;
-  opacity: 0;
-}
-
-.accordion-panel.open {
-  max-height: 500px;
-  opacity: 1;
-}
-
-/* ========================================================
-   Shader Background Canvas
-   ======================================================== */
-.shader-canvas {
+/* --- Splash Loader --- */
+.splash-container {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -2;
-  pointer-events: none;
-  opacity: 0.35;
-}
-
-[data-theme="dark"] .shader-canvas {
-  opacity: 0.25;
-}
-
-/* ========================================================
-   Keyframe Animations
-   ======================================================== */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -400px 0;
-  }
-  100% {
-    background-position: 400px 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeScale {
-  from {
-    opacity: 0;
-    transform: scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    max-height: 0;
-  }
-  to {
-    opacity: 1;
-    max-height: 400px;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-@keyframes pageFlipForward {
-  0% {
-    opacity: 0.9;
-    transform: perspective(1400px) rotateY(-18deg) translateX(8px) scale(0.985);
-    transform-origin: left center;
-    filter: blur(0.8px);
-  }
-  55% {
-    opacity: 1;
-    transform: perspective(1400px) rotateY(6deg) translateX(-2px) scale(1.002);
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: perspective(1400px) rotateY(0deg) translateX(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes pageFlipBackward {
-  0% {
-    opacity: 0.9;
-    transform: perspective(1400px) rotateY(18deg) translateX(-8px) scale(0.985);
-    transform-origin: right center;
-    filter: blur(0.8px);
-  }
-  55% {
-    opacity: 1;
-    transform: perspective(1400px) rotateY(-6deg) translateX(2px) scale(1.002);
-    filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    transform: perspective(1400px) rotateY(0deg) translateX(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3); }
-  50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
-}
-
-/* --- Skeleton shimmer --- */
-.skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--input-bg) 25%,
-    var(--accent-soft) 50%,
-    var(--input-bg) 75%
-  );
-  background-size: 800px 100%;
-  animation: shimmer 1.8s infinite ease-in-out;
-}
-
-/* --- Fade-in utility --- */
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out both;
-}
-
-.animate-fade-scale {
-  animation: fadeScale 0.15s ease-out both;
-}
-
-.animate-slide-up {
-  animation: slideUp 0.25s ease-out both;
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.pdf-page-wrap {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-}
-
-.pdf-page-wrap > .react-pdf__Page {
-  max-width: 100%;
-}
-
-.pdf-page-wrap > .react-pdf__Page > canvas {
-  width: 100% !important;
-  height: auto !important;
-  border-radius: 0.875rem;
-}
-
-.pdf-page-flip-forward {
-  animation: pageFlipForward 420ms cubic-bezier(0.24, 0.64, 0.22, 1) both;
-}
-
-.pdf-page-flip-backward {
-  animation: pageFlipBackward 420ms cubic-bezier(0.24, 0.64, 0.22, 1) both;
-}
-
-/* ========================================================
-   Stagger Children Animation
-   ======================================================== */
-.stagger-children > * {
-  opacity: 0;
-  animation: fadeIn 0.2s ease-out forwards;
-}
-
-.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-children > *:nth-child(2) { animation-delay: 30ms; }
-.stagger-children > *:nth-child(3) { animation-delay: 60ms; }
-.stagger-children > *:nth-child(4) { animation-delay: 90ms; }
-.stagger-children > *:nth-child(5) { animation-delay: 120ms; }
-.stagger-children > *:nth-child(6) { animation-delay: 150ms; }
-.stagger-children > *:nth-child(7) { animation-delay: 180ms; }
-.stagger-children > *:nth-child(8) { animation-delay: 210ms; }
-
-/* ========================================================
-   Mobile Performance Optimizations
-   ======================================================== */
-@media (max-width: 768px), (pointer: coarse) {
-  .neu-raised {
-    box-shadow: 0 1px 6px var(--neu-shadow-dark);
-  }
-
-  .neu-btn {
-    box-shadow: 0 1px 4px var(--neu-shadow-dark);
-  }
-
-  .neu-btn:hover:not(:disabled) {
-    transform: none;
-    box-shadow: 0 1px 4px var(--neu-shadow-dark);
-  }
-
-  .neu-card-hover:hover,
-  .premium-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px var(--neu-shadow-dark);
-  }
-
-  .glass-surface,
-  .glass-navbar {
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .pdf-page-wrap > .react-pdf__Page > canvas {
-    border-radius: 0.75rem;
-  }
-
-  .pdf-page-flip-forward,
-  .pdf-page-flip-backward {
-    animation-duration: 320ms;
-  }
-
-  /* Reduce hero animation on mobile */
-  .hero-section {
-    animation-duration: 12s;
-  }
-
-  /* Ebook detail: stack cover and info on mobile */
-  .ebook-detail-cover {
-    position: static;
-  }
-
-  .ebook-cover-wrapper {
-    max-width: 280px;
-    margin: 0 auto;
-  }
-
-  .ebook-detail-title {
-    font-size: 1.5rem;
-  }
-
-  .ebook-price-value {
-    font-size: 2rem;
-  }
-
-  .ebook-detail-info {
-    padding: 1.25rem;
-  }
-
-  /* Shader performance */
-  .shader-canvas {
-    opacity: 0.2;
-  }
-}
-
-/* ========================================================
-   Accessibility: Reduced Motion
-   ======================================================== */
-@media (prefers-reduced-motion: reduce) {
-  .neu-btn,
-  .neu-card-hover,
-  .premium-card,
-  .accordion-panel,
-  .skeleton-shimmer,
-  .animate-fade-in,
-  .animate-fade-scale,
-  .animate-slide-up,
-  .animate-float,
-  .hero-section,
-  .stagger-children > * {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .pdf-page-wrap,
-  .pdf-page-flip-forward,
-  .pdf-page-flip-backward {
-    animation: none !important;
-    transform: none !important;
-    filter: none !important;
-  }
-
-  .stagger-children > * {
-    opacity: 1 !important;
-  }
-}
-
-/* ========================================================
-   Focus-visible global style
-   ======================================================== */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ========================================================
-   Scrollbar
-   ======================================================== */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--accent-soft);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-  opacity: 0.5;
-}
-
-/* ========================================================
-   Utility: Line Clamp
-   ======================================================== */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ========================================================
-   Page Transitions — smooth next.js navigation
-   ======================================================== */
-/* Removed main animation — it compounds with per-section
-   animations creating a slow perceived load. Sections
-   already animate individually via animate-fade-in and
-   animate-slide-up classes. */
-
-/* ========================================================
-   NeuTabs — Mobile Scroll Fix
-   ======================================================== */
-@media (max-width: 640px) {
-  [role="tablist"] {
-    overflow-x: auto;
-    flex-wrap: nowrap !important;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  [role="tablist"]::-webkit-scrollbar {
-    display: none;
-  }
-
-  [role="tablist"] > button {
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-}
-
-/* ========================================================
-   Empty States — Premium styling
-   ======================================================== */
-.empty-state {
+  background: #000;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 3rem 2rem;
-  text-align: center;
-  background: var(--glass);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+}
+
+.splash-progress-bar {
+  width: 200px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-top: 2rem;
+}
+
+.splash-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.1s linear;
+}
+
+/* --- Bottom Nav --- */
+.bottom-nav {
+  background: rgba(5, 5, 5, 0.9);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* --- Immersive Reader Panels --- */
+.reader-panel {
+  background: var(--surface);
   border: 1px solid var(--glass-border);
-  border-radius: 1.5rem;
 }

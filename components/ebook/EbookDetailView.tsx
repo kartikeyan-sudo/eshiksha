@@ -331,136 +331,94 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   return (
     <div className="space-y-10 animate-fade-in">
       {/* ═══════ MAIN DETAIL SECTION ═══════ */}
-      <section className="ebook-detail-hero">
-        {/* Cover Image Container */}
-        <div className="ebook-detail-cover">
-          <div className="ebook-cover-wrapper">
-            <img
-              src={ebook.coverUrl}
-              alt={ebook.title}
-              className="ebook-cover-img"
-            />
-            {/* Floating badges on cover */}
-            <div className="ebook-cover-overlay">
-              {ebook.isFree ? (
-                <span className="ebook-price-float free">FREE</span>
-              ) : (
-                <span className="ebook-price-float">{formatINR(ebook.price)}</span>
-              )}
+    <div className="space-y-12 animate-fade-in">
+      {/* ═══════ PREMIUM MATTE DETAIL ═══════ */}
+      <section className="grid grid-cols-1 gap-12 lg:grid-cols-12 items-start">
+        {/* Left: Cover */}
+        <div className="lg:col-span-5 xl:col-span-4 sticky top-24">
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[var(--accent)] to-transparent blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+            <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-[#0a0a0a] border border-white/10 shadow-2xl">
+              <img
+                src={ebook.coverUrl}
+                alt={ebook.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-black via-black/40 to-transparent">
+                <div className="inline-flex items-center px-4 py-2 rounded-xl bg-white text-black font-black text-sm">
+                  {ebook.isFree ? "FREE ACCESS" : formatINR(ebook.price)}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Info Panel */}
-        <div className="ebook-detail-info">
-          {/* Status badges */}
-          <div className="flex flex-wrap items-center gap-2">
-            <NeuBadge tone={hasAccess ? "success" : "warning"}>{hasAccess ? "✓ Purchased" : "Preview Mode"}</NeuBadge>
-            {ebook.isFree && <NeuBadge tone="success">Free</NeuBadge>}
-            {ebook.category && <NeuBadge tone="info">{ebook.category}</NeuBadge>}
-          </div>
-
-          {/* Title */}
-          <h1 className="ebook-detail-title">{ebook.title}</h1>
-
-          {/* Rating */}
-          {hasRating && (
-            <div className="flex items-center gap-3">
-              <RatingStars rating={ebook.averageRating || 0} />
-              <span className="text-sm text-[var(--text-muted)]">
-                {(ebook.averageRating || 0).toFixed(1)} · {ebook.ratingsCount || 0} review{(ebook.ratingsCount || 0) !== 1 ? "s" : ""}
+        {/* Right: Info */}
+        <div className="lg:col-span-7 xl:col-span-8 space-y-8">
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[var(--accent)] text-[10px] font-black uppercase tracking-widest">
+                {ebook.category || "General Protocol"}
               </span>
-            </div>
-          )}
-
-          {/* Description */}
-          <p className="ebook-detail-desc">{ebook.description}</p>
-
-          {/* Tags */}
-          {ebook.tags && ebook.tags.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {ebook.tags.map((tag) => (
-                <span key={tag} className="ebook-tag">#{tag}</span>
-              ))}
-            </div>
-          ) : null}
-
-          {/* Stats row */}
-          <div className="ebook-detail-stats">
-            {ebook.viewsCount ? (
-              <span className="ebook-stat-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                {ebook.viewsCount} views
-              </span>
-            ) : null}
-            <span className="ebook-stat-item">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
-              {previewPages} preview pages
-            </span>
-          </div>
-
-          {/* Divider */}
-          <div className="ebook-detail-divider" />
-
-          {/* Price + Actions */}
-          <div className="ebook-detail-actions">
-            <div className="ebook-price-section">
-              <span className="ebook-price-label">Price</span>
-              <span className="ebook-price-value">{ebook.isFree ? "Free" : formatINR(ebook.price)}</span>
-            </div>
-
-            <div className="ebook-action-buttons">
-              {!hasAccess && (
-                <NeuButton 
-                  className={`ebook-buy-btn ${isPaymentReview ? 'review-mode' : ''}`}
-                  onClick={isPaymentReview ? () => {} : handleBuyClick} 
-                  loading={buying}
-                  disabled={isPaymentReview}
-                >
-                  {isPaymentReview ? (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                      Under Review
-                    </>
-                  ) : (
-                    <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-                      Buy Now
-                    </>
-                  )}
-                </NeuButton>
-              )}
-              
-              <NeuButton 
-                variant={hasAccess ? "primary" : "secondary"} 
-                className="ebook-read-btn"
-                onClick={openReader} 
-                loading={loadingAccess}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-                  <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-                </svg>
-                {hasAccess ? "Read Full Ebook" : "Open Preview"}
-              </NeuButton>
-              
               {hasAccess && (
-                <NeuButton variant="secondary" className="ebook-download-btn" onClick={downloadEbook} loading={downloading}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Download PDF
-                </NeuButton>
+                <span className="px-3 py-1 rounded-lg bg-[var(--success)]/10 text-[var(--success)] text-[10px] font-black uppercase tracking-widest">
+                  ✓ Owned
+                </span>
               )}
             </div>
+            
+            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white">
+              {ebook.title}
+            </h1>
+
+            {hasRating && (
+              <div className="flex items-center gap-4 py-2">
+                <RatingStars rating={ebook.averageRating || 0} />
+                <span className="text-sm text-[var(--text-muted)] font-bold">
+                  {(ebook.averageRating || 0).toFixed(1)} PROTOCOL SCORE
+                </span>
+              </div>
+            )}
+          </div>
+
+          <p className="text-lg text-[var(--text-secondary)] leading-relaxed font-medium border-l-2 border-white/10 pl-6">
+            {ebook.description}
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="text-[10px] font-black text-[var(--text-muted)] uppercase mb-1">Views</div>
+                <div className="text-xl font-bold text-white">{ebook.viewsCount || 0}</div>
+             </div>
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="text-[10px] font-black text-[var(--text-muted)] uppercase mb-1">Preview</div>
+                <div className="text-xl font-bold text-white">{previewPages} Pages</div>
+             </div>
+             <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                <div className="text-[10px] font-black text-[var(--text-muted)] uppercase mb-1">Access</div>
+                <div className="text-xl font-bold text-white">{hasAccess ? "Full" : "Limited"}</div>
+             </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            {!hasAccess && (
+              <button 
+                onClick={handleBuyClick}
+                disabled={isPaymentReview || buying}
+                className="flex-1 px-8 py-5 rounded-2xl bg-white text-black font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:grayscale"
+              >
+                {isPaymentReview ? "UNDER REVIEW" : buying ? "PROCESSING..." : `UNLOCK PROTOCOL — ${formatINR(ebook.price)}`}
+              </button>
+            )}
+            
+            <button 
+              onClick={openReader}
+              className={`flex-1 px-8 py-5 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                hasAccess ? "bg-white text-black" : "bg-white/5 border border-white/10 text-white"
+              }`}
+            >
+              {hasAccess ? "OPEN READER" : "READ PREVIEW"}
+            </button>
           </div>
         </div>
       </section>
