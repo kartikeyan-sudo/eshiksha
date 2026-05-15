@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       const data = await login(email, password);
-      setClientAuth(data.token, data.role);
+      setClientAuth(data.token, data.user.role);
       router.push("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Security verification failed");
