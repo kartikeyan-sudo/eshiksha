@@ -108,36 +108,36 @@ export default function Home() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-6 pb-24 md:px-8 md:pb-8">
       {/* ═══════ PREMIUM MATTE HERO ═══════ */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-[#0a0a0a] border border-white/5 p-6 md:p-20 animate-fade-in shadow-2xl">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0a] border border-white/5 p-8 md:p-24 animate-fade-in shadow-2xl">
         {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-[var(--accent)]/10 blur-[80px] md:blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-[var(--accent)]/10 blur-[100px] md:blur-[140px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         
-        <div className="relative z-10 max-w-3xl text-center md:text-left">
-          <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-4 py-2 text-[8px] md:text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase backdrop-blur-md mx-auto md:mx-0">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_8px_var(--accent)]" />
+        <div className="relative z-10 max-w-3xl">
+          <div className="mb-8 inline-flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-5 py-2.5 text-[10px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)] animate-pulse shadow-[0_0_10px_var(--accent)]" />
             Universal Protocol v2.0
           </div>
           
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black leading-[1.1] text-white tracking-tighter uppercase">
+          <h1 className="text-5xl md:text-8xl font-black leading-[1] text-white tracking-tighter uppercase">
             ELEVATE YOUR 
             <br />
             <span className="text-[var(--text-muted)]">KNOWLEDGE.</span>
           </h1>
           
-          <p className="mt-6 max-w-lg text-sm md:text-lg leading-relaxed text-[var(--text-secondary)] font-medium mx-auto md:mx-0">
+          <p className="mt-8 max-w-lg text-lg md:text-xl leading-relaxed text-[var(--text-secondary)] font-medium">
             The elite digital library for curated protocols, academic insights, and strategic learning.
           </p>
           
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
+          <div className="mt-12 flex flex-wrap gap-4">
             <Link
               href="#featured"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-black font-black text-xs md:text-sm transition-all hover:scale-[1.02] active:scale-[0.98] text-center"
+              className="px-10 py-5 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest transition-all hover:scale-[1.05] active:scale-[0.95] shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
             >
               BROWSE COLLECTION
             </Link>
             <Link
               href="/library"
-              className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-xs md:text-sm transition-all hover:bg-white/10 text-center"
+              className="px-10 py-5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-sm uppercase tracking-widest transition-all hover:bg-white/10"
             >
               MY VAULT →
             </Link>
