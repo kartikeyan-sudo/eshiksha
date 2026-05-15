@@ -161,11 +161,7 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   };
 
   const handleBuyClick = () => {
-    if (allowAlreadyPaid && !ebook.isFree) {
-      setShowPaymentModal(true);
-    } else {
-      buyNow();
-    }
+    buyNow();
   };
 
   const handleUpiSubmit = async (utr: string) => {
