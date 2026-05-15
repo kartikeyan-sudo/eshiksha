@@ -1,29 +1,25 @@
-import React from "react";
+import { cn } from "@/lib/utils";
 
-interface NeuBadgeProps {
+type Tone = "default" | "info" | "success" | "warning" | "danger";
+
+type NeuBadgeProps = {
   children: React.ReactNode;
-  tone?: "info" | "success" | "warning" | "danger" | "neutral";
+  tone?: Tone;
   className?: string;
-}
+};
 
-export const NeuBadge: React.FC<NeuBadgeProps> = ({
-  children,
-  tone = "neutral",
-  className = "",
-}) => {
-  const tones = {
-    info: "bg-blue-100 text-blue-900",
-    success: "bg-green-100 text-green-900",
-    warning: "bg-yellow-100 text-yellow-900",
-    danger: "bg-red-100 text-red-900",
-    neutral: "bg-gray-100 text-gray-900",
-  };
+const toneClass: Record<Tone, string> = {
+  default: "bg-[var(--accent-soft)] text-[var(--text-primary)]",
+  info: "bg-[var(--info)]/15 text-[var(--info)]",
+  success: "bg-[var(--success)]/15 text-[var(--success)]",
+  warning: "bg-[var(--warning)]/15 text-[var(--warning)]",
+  danger: "bg-[var(--danger)]/15 text-[var(--danger)]",
+};
 
+export function NeuBadge({ children, tone = "default", className }: NeuBadgeProps) {
   return (
-    <span
-      className={`inline-block px-3 py-1 border-2 border-black font-['Bebas_Neue'] text-sm uppercase tracking-wider ${tones[tone]} ${className}`}
-    >
+    <span className={cn("inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold", toneClass[tone], className)}>
       {children}
     </span>
   );
-};
+}

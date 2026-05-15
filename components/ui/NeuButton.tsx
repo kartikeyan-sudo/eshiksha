@@ -1,52 +1,36 @@
-import React from "react";
+import { cn } from "@/lib/utils";
 
-interface NeuButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "accent" | "ghost" | "danger";
-  size?: "sm" | "md" | "lg";
+type Variant = "primary" | "secondary" | "ghost" | "danger";
+
+type NeuButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: Variant;
   loading?: boolean;
-}
+};
 
-export const NeuButton: React.FC<NeuButtonProps> = ({
-  children,
-  variant = "primary",
-  size = "md",
-  loading,
-  className = "",
-  disabled,
-  ...props
-}) => {
-  const baseStyles = "brutalist-button";
-  
-  const variantStyles = {
-    primary: "primary",
-    secondary: "",
-    accent: "accent",
-    ghost: "border-none shadow-none bg-transparent hover:bg-gray-100",
-    danger: "bg-red-600 text-white",
-  };
+const variantClass: Record<Variant, string> = {
+  primary: "bg-[var(--accent)] text-white font-semibold hover:bg-[var(--accent-hover)]",
+  secondary: "bg-[var(--surface)] text-[var(--text-primary)] border border-[var(--glass-border)] hover:border-[var(--accent)]/30",
+  ghost: "bg-transparent text-[var(--text-secondary)] hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]",
+  danger: "bg-[var(--danger)] text-white hover:opacity-90",
+};
 
-  const sizeStyles = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-lg",
-    lg: "px-8 py-4 text-xl",
-  };
-
+export function NeuButton({ className, variant = "primary", loading, children, disabled, ...props }: NeuButtonProps) {
   return (
     <button
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className} ${
-        disabled || loading ? "opacity-50 cursor-not-allowed" : ""
-      }`}
+      className={cn(
+        "neu-btn inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        variantClass[variant],
+        className,
+      )}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
-        <span className="flex items-center gap-2">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          Processing...
-        </span>
-      ) : (
-        children
-      )}
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true" />
+      ) : null}
+      {children}
     </button>
   );
-};
+}
