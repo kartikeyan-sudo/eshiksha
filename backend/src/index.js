@@ -30,26 +30,30 @@ const allowedOrigins = env.frontendOrigin
   .filter(Boolean);
 
 app.use(
-  cors({
-    origin(origin, callback) {
-      // Allow non-browser clients and same-origin server-side calls.
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
+      cors({
+        origin(origin, callback) {
+          if (!origin || process.env.NODE_ENV === "development") {
+            callback(null, true);
+            return;
+          }
 
-      const requestOrigin = normalizeOrigin(origin);
-      const isAllowed = allowedOrigins.includes(requestOrigin);
+          const requestOrigin = normalizeOrigin(origin);
+          const isAllowed = allowedOrigins.some(o => requestOrigin.includes(o) || o.includes(requestOrigin));
 
-      if (isAllowed) {
-        callback(null, true);
-        return;
-      }
-
-      callback(new Error(`CORS blocked for origin: ${origin}`));
-    },
-  }),
-);
+          if (isAllowed) {
+            callback(null, true);
+          } else {
+            // Log for debugging but allow if it looks like a vercel preview
+            if (origin.includes("vercel.app")) {
+              callback(null, true);
+            } else {
+              callback(new Error(`CORS blocked for origin: ${origin}`));
+            }
+          }
+        },
+        credentials: true,
+      }),
+    );
 app.use(express.json());
 
 app.get("/api/health", (req, res) => {

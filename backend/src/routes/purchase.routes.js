@@ -49,7 +49,7 @@ router.post(
       "SELECT key, value FROM settings WHERE key IN ('payment_mode', 'admin_upi_id')"
     );
     const settings = {};
-    settingsResult.rows.forEach(r => settings[r.key] = r.value);
+    settingsResult.rows.forEach(r => settings[r.key] = String(r.value || "").trim().toLowerCase());
     
     const isUpiOnly = settings.payment_mode === 'upi';
 
