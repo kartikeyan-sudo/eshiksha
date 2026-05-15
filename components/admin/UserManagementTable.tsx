@@ -62,89 +62,90 @@ export function UserManagementTable({ users, onUpdated }: UserManagementTablePro
   };
 
   return (
-    <div className="glass-surface rounded-2xl overflow-hidden">
-      <div className="border-b border-[var(--glass-border)] px-5 py-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-[var(--text-primary)]">Users</h2>
-        <span className="text-sm text-[var(--text-muted)]">{users.length} users</span>
+    <div className="brutalist-card bg-white border-4 border-black overflow-hidden shadow-[8px_8px_0px_black]">
+      <div className="border-b-4 border-black px-6 py-4 flex items-center justify-between bg-gray-50">
+        <h2 className="text-2xl font-['Anton'] uppercase tracking-tight">Personnel Directory</h2>
+        <span className="font-['Bebas_Neue'] text-lg text-gray-500 uppercase">{users.length} Active Agents</span>
       </div>
 
       {users.length === 0 ? (
         <div className="p-12 text-center">
-          <p className="text-sm text-[var(--text-muted)]">No users found.</p>
+          <p className="font-['Bebas_Neue'] text-xl text-gray-500 uppercase">No personnel records found.</p>
         </div>
-      ) : null}
-
-      <div className="overflow-x-auto" hidden={users.length === 0}>
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-[var(--glass-border)]">
-              <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Email</th>
-              <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Role</th>
-              <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Status</th>
-              <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Purchased Books</th>
-              <th className="px-5 py-3 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b border-[var(--glass-border)] last:border-0 hover:bg-[var(--accent-soft)] transition-colors">
-                <td className="px-5 py-4 text-[var(--text-primary)]">{user.email}</td>
-                <td className="px-5 py-4">
-                  <NeuBadge tone={user.role === "admin" ? "info" : "default"}>{user.role}</NeuBadge>
-                </td>
-                <td className="px-5 py-4 flex items-center gap-2">
-                  <NeuBadge tone={user.isActive ? "success" : "warning"}>{user.isActive ? "Active" : "Inactive"}</NeuBadge>
-                  <NeuBadge tone={user.isBlocked ? "danger" : "success"}>{user.isBlocked ? "Blocked" : "Unblocked"}</NeuBadge>
-                </td>
-                <td className="px-5 py-4">
-                  {user.purchasedBooks && user.purchasedBooks.length > 0 ? (
-                    <div className="flex flex-col gap-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar">
-                      {user.purchasedBooks.map((book) => (
-                        <div key={book.id} className="text-xs flex items-center justify-between border-b border-[var(--glass-border)] py-1 last:border-0">
-                          <span className="truncate max-w-[120px] font-medium text-[var(--accent)]" title={book.title}>
-                            {book.title}
-                          </span>
-                          <span className="text-[var(--text-muted)]">₹{book.price}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-[var(--text-muted)] italic">No purchases</span>
-                  )}
-                </td>
-                <td className="px-5 py-4">
-                  <div className="flex flex-wrap gap-2">
-                    <NeuButton
-                      variant="ghost"
-                      className="text-xs min-h-[32px] px-3 py-1"
-                      onClick={() => updateBlocked(user, !user.isBlocked)}
-                      loading={loadingKey === `block-${user.id}`}
-                    >
-                      {user.isBlocked ? "Unblock" : "Block"}
-                    </NeuButton>
-                    <NeuButton
-                      variant="ghost"
-                      className="text-xs min-h-[32px] px-3 py-1"
-                      onClick={() => updateActive(user, !user.isActive)}
-                      loading={loadingKey === `active-${user.id}`}
-                    >
-                      {user.isActive ? "Deactivate" : "Activate"}
-                    </NeuButton>
-                    <NeuButton
-                      variant="secondary"
-                      className="text-xs min-h-[32px] px-3 py-1 bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
-                      onClick={() => handleDownloadUserPdf(user)}
-                      loading={loadingKey === `pdf-${user.id}`}
-                    >
-                      Download PDF
-                    </NeuButton>
-                  </div>
-                </td>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b-2 border-black bg-white">
+                <th className="px-6 py-4 font-['Bebas_Neue'] text-lg uppercase tracking-widest text-black">Identifier</th>
+                <th className="px-6 py-4 font-['Bebas_Neue'] text-lg uppercase tracking-widest text-black">Protocol</th>
+                <th className="px-6 py-4 font-['Bebas_Neue'] text-lg uppercase tracking-widest text-black">Status</th>
+                <th className="px-6 py-4 font-['Bebas_Neue'] text-lg uppercase tracking-widest text-black">Acquisitions</th>
+                <th className="px-6 py-4 font-['Bebas_Neue'] text-lg uppercase tracking-widest text-black">Operations</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user.id} className="border-b-2 border-black last:border-0 hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-black">{user.email}</td>
+                  <td className="px-6 py-4">
+                    <NeuBadge tone={user.role === "admin" ? "info" : "neutral"}>{user.role}</NeuBadge>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-2">
+                       <NeuBadge tone={user.isActive ? "success" : "warning"}>{user.isActive ? "ACTIVE" : "INACTIVE"}</NeuBadge>
+                       <NeuBadge tone={user.isBlocked ? "danger" : "success"}>{user.isBlocked ? "BLOCKED" : "CLEAR"}</NeuBadge>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {user.purchasedBooks && user.purchasedBooks.length > 0 ? (
+                      <div className="flex flex-col gap-1 max-h-32 overflow-y-auto pr-2">
+                        {user.purchasedBooks.map((book) => (
+                          <div key={book.id} className="text-xs flex items-center justify-between border-b border-black/10 py-1 last:border-0">
+                            <span className="truncate max-w-[120px] font-bold text-[#b83227]" title={book.title}>
+                              {book.title}
+                            </span>
+                            <span className="text-gray-400">₹{book.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">No assets acquired</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-wrap gap-2">
+                      <NeuButton
+                        variant="secondary"
+                        className="text-xs py-1 px-3 min-h-0"
+                        onClick={() => updateBlocked(user, !user.isBlocked)}
+                        loading={loadingKey === `block-${user.id}`}
+                      >
+                        {user.isBlocked ? "CLEAR" : "BLOCK"}
+                      </NeuButton>
+                      <NeuButton
+                        variant="secondary"
+                        className="text-xs py-1 px-3 min-h-0"
+                        onClick={() => updateActive(user, !user.isActive)}
+                        loading={loadingKey === `active-${user.id}`}
+                      >
+                        {user.isActive ? "DISABLE" : "ENABLE"}
+                      </NeuButton>
+                      <button
+                        className="px-3 py-1 border-2 border-black bg-white font-['Bebas_Neue'] text-xs hover:bg-black hover:text-white transition-all disabled:opacity-50"
+                        onClick={() => handleDownloadUserPdf(user)}
+                        disabled={loadingKey === `pdf-${user.id}`}
+                      >
+                        {loadingKey === `pdf-${user.id}` ? "EXPORTING..." : "EXPORT DATA"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       <NeuToast 
         open={toast.open} 
         message={toast.message} 
