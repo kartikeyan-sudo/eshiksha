@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { NeuButton } from "@/components/ui/NeuButton";
 import { NeuInput } from "@/components/ui/NeuInput";
-import { login } from "@/lib/api";
+import { loginUser as login } from "@/lib/api";
 import { setClientAuth } from "@/lib/auth";
 
 export default function LoginPage() {

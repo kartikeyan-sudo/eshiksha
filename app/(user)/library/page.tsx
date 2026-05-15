@@ -6,12 +6,12 @@ import { useRouter } from "next/navigation";
 import { NeuBadge } from "@/components/ui/NeuBadge";
 import { NeuToast } from "@/components/ui/NeuToast";
 import { getClientToken } from "@/lib/auth";
-import { listEbookAccess } from "@/lib/api";
-import type { EbookAccess } from "@/lib/types";
+import { listLibrary } from "@/lib/api";
+import type { Ebook } from "@/lib/types";
 
 export default function LibraryPage() {
   const router = useRouter();
-  const [accessList, setAccessList] = useState<EbookAccess[]>([]);
+  const [ebooks, setEbooks] = useState<Ebook[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "active" | "verified">("all");
   const [message, setMessage] = useState("");
@@ -24,19 +24,19 @@ export default function LibraryPage() {
       return;
     }
 
-    listEbookAccess(token)
-      .then(setAccessList)
+    listLibrary(token)
+      .then(setEbooks)
       .catch((err) => {
-        setAccessList([]);
+        setEbooks([]);
         setMessage("Security Synchronization Failed.");
         setToastOpen(true);
       })
       .finally(() => setLoading(false));
   }, [router]);
 
-  const filtered = accessList.filter((item) => {
-    if (filter === "active") return item.status === "active";
-    if (filter === "verified") return item.status === "verified";
+  const filtered = ebooks.filter((item) => {
+    if (filter === "active") return item.isPaymentReview === false;
+    if (filter === "verified") return item.hasPurchased === true;
     return true;
   });
 
@@ -85,24 +85,24 @@ export default function LibraryPage() {
               {filtered.map((item) => (
                 <div key={item.id} className="brutalist-card p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center">
                   <div className="w-40 h-56 flex-shrink-0 border-2 border-black overflow-hidden shadow-[4px_4px_0px_black]">
-                     <img src={item.ebook.coverUrl} alt={item.ebook.title} className="w-full h-full object-cover" />
+                     <img src={item.coverUrl} alt={item.title} className="w-full h-full object-cover" />
                   </div>
                   
                   <div className="flex-1 space-y-4 text-center md:text-left">
                      <div className="flex flex-col md:flex-row md:items-center gap-4 justify-center md:justify-start">
-                        <h3 className="text-4xl font-['Anton']">{item.ebook.title}</h3>
-                        <NeuBadge tone={item.status === 'verified' ? 'success' : 'info'}>
-                           Clearance: {item.status}
+                        <h3 className="text-4xl font-['Anton']">{item.title}</h3>
+                        <NeuBadge tone={item.isPaymentReview ? 'warning' : 'success'}>
+                           Clearance: {item.isPaymentReview ? 'Under Review' : 'Verified'}
                         </NeuBadge>
                      </div>
                      
                      <p className="font-['Inter'] text-gray-600 max-w-2xl text-sm uppercase tracking-tight">
-                        Acquired on {new Date(item.acquiredAt).toLocaleDateString()} // 
+                        Category: {item.category || "General"} // 
                         Identifier: PRTCL-{item.id.toString().padStart(6, '0')}
                      </p>
 
                      <div className="pt-4 flex flex-wrap gap-4 justify-center md:justify-start">
-                        <Link href={`/ebook/${item.ebookId}`}>
+                        <Link href={`/ebook/${item.id}`}>
                            <button className="brutalist-button primary">Access Data</button>
                         </Link>
                         <button className="brutalist-button secondary">Protocol Intel</button>
