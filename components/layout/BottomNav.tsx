@@ -9,21 +9,8 @@ const bottomNavItems = [
     href: "/",
     label: "Home",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-        <polyline points="9 22 9 12 15 12 15 22" />
-      </svg>
-    ),
-  },
-  {
-    href: "/#categories",
-    label: "Categories",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="3" width="7" height="7" rx="1.5" />
-        <rect x="14" y="14" width="7" height="7" rx="1.5" />
-        <rect x="3" y="14" width="7" height="7" rx="1.5" />
       </svg>
     ),
   },
@@ -31,7 +18,7 @@ const bottomNavItems = [
     href: "/library",
     label: "Library",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
       </svg>
@@ -41,10 +28,9 @@ const bottomNavItems = [
     href: "/orders",
     label: "Orders",
     icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
         <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-        <path d="M9 14l2 2 4-4" />
       </svg>
     ),
   },
@@ -52,36 +38,23 @@ const bottomNavItems = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const [hash, setHash] = useState("");
 
-  useEffect(() => {
-    const syncHash = () => setHash(window.location.hash || "");
-    syncHash();
-    window.addEventListener("hashchange", syncHash);
-    return () => window.removeEventListener("hashchange", syncHash);
-  }, [pathname]);
-
-  const categoriesActive = pathname === "/" && hash === "#categories";
+  // Don't show bottom nav on reading pages
+  if (pathname.includes("/read")) return null;
 
   return (
-    <nav className="bottom-nav md:hidden" aria-label="Mobile navigation">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/80 backdrop-blur-2xl border-t border-white/5 pt-3 pb-8 px-8 flex items-center justify-around">
       {bottomNavItems.map((item) => {
-        const isHome = item.href === "/";
-        const isCategories = item.href === "/#categories";
-        const isActive = isCategories
-          ? categoriesActive
-          : isHome
-            ? pathname === "/" && !categoriesActive
-            : pathname === item.href;
+        const isActive = pathname === item.href;
 
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={`bottom-nav-item ${isActive ? "active" : ""}`}
+            className={`flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? "text-blue-500 scale-110" : "text-white/20"}`}
           >
-            {item.icon}
-            <span>{item.label}</span>
+            <div className="w-6 h-6">{item.icon}</div>
+            <span className="text-[10px] font-black uppercase tracking-tighter">{item.label}</span>
           </Link>
         );
       })}

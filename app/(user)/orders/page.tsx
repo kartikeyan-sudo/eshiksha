@@ -3,18 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { NeuBadge } from "@/components/ui/NeuBadge";
-import { NeuButton } from "@/components/ui/NeuButton";
 import { getClientToken } from "@/lib/auth";
 import { listOrders } from "@/lib/api";
 import type { Order } from "@/lib/types";
 import { formatINR } from "@/lib/utils";
-
-function getStatusTone(status: string): "info" | "success" | "warning" {
-  if (status === "completed") return "success";
-  if (status === "delivered") return "info";
-  return "warning";
-}
 
 export default function UserOrdersPage() {
   const router = useRouter();
@@ -35,84 +27,56 @@ export default function UserOrdersPage() {
   }, [router]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 pb-24 md:px-8 md:pb-8 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-[var(--text-primary)]">My Orders</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
-            {loading ? "Loading..." : `${orders.length} purchase${orders.length !== 1 ? "s" : ""}`}
-          </p>
-        </div>
-        <Link href="/">
-          <NeuButton variant="secondary" className="text-xs gap-1.5">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-            </svg>
-            Browse Ebooks
-          </NeuButton>
-        </Link>
+    <div className="w-full min-h-screen pt-32 pb-20 container mx-auto px-6 space-y-16 animate-fade-in">
+       {/* Header */}
+      <div className="space-y-4">
+        <h1 className="text-6xl font-black tracking-tighter text-white">ORDER HISTORY</h1>
+        <p className="text-white/40 font-bold uppercase tracking-[0.2em] text-xs">
+          {orders.length} Protocols successfully unlocked
+        </p>
       </div>
 
       {loading ? (
-        <div className="glass-surface rounded-2xl p-12 text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-3 border-[var(--accent-soft)] border-t-[var(--accent)]" />
-          <p className="mt-4 text-sm text-[var(--text-muted)]">Loading your orders...</p>
+        <div className="py-20 text-center space-y-4">
+           <div className="w-12 h-12 border-4 border-white/5 border-t-blue-500 rounded-full animate-spin mx-auto" />
+           <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Syncing with blockchain...</p>
         </div>
       ) : orders.length === 0 ? (
-        <div className="empty-state">
-          <span className="text-5xl">📦</span>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)]">No orders yet</h2>
-          <p className="text-sm text-[var(--text-muted)] max-w-xs">Start exploring ebooks and make your first purchase!</p>
-          <Link href="/">
-            <NeuButton>Browse Ebooks</NeuButton>
-          </Link>
+        <div className="py-20 text-center space-y-8">
+           <div className="text-6xl">📦</div>
+           <h3 className="text-2xl font-black text-white">No Transmissions Found</h3>
+           <p className="text-white/40 font-medium">Your order history is currently empty.</p>
+           <Link href="/" className="btn-premium inline-block">Start Shopping</Link>
         </div>
       ) : (
-        <div className="space-y-3 stagger-children">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="premium-card flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex items-center gap-4">
-                {order.coverUrl && (
-                  <img
-                    src={order.coverUrl}
-                    alt={order.ebookTitle}
-                    className="h-16 w-12 rounded-lg object-cover shadow-sm flex-shrink-0"
-                    loading="lazy"
-                  />
-                )}
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-[var(--text-primary)] line-clamp-1">{order.ebookTitle}</h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                    <span className="text-sm font-bold text-[var(--accent)]">{formatINR(order.amount)}</span>
-                    <NeuBadge tone={getStatusTone(order.status)}>{order.status}</NeuBadge>
-                  </div>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">
-                    {new Date(order.createdAt).toLocaleDateString("en-IN", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </p>
+        <div className="space-y-4">
+           {orders.map((order) => (
+             <div key={order.id} className="glass-panel p-6 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-8 group hover:border-white/10 transition-all">
+                <div className="flex items-center gap-6 flex-1">
+                   {order.coverUrl && (
+                     <img src={order.coverUrl} className="w-16 h-20 object-cover rounded-xl shadow-xl" />
+                   )}
+                   <div className="space-y-1">
+                      <h3 className="text-lg font-black text-white">{order.ebookTitle}</h3>
+                      <div className="flex items-center gap-4">
+                         <span className="text-xs font-bold text-blue-400">{formatINR(order.amount)}</span>
+                         <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                           order.status === 'completed' ? 'bg-green-500/10 text-green-400' : 'bg-yellow-500/10 text-yellow-400'
+                         }`}>
+                           {order.status}
+                         </span>
+                      </div>
+                      <p className="text-[10px] font-medium text-white/20 uppercase tracking-widest">
+                         Order Date: {new Date(order.createdAt).toLocaleDateString()}
+                      </p>
+                   </div>
                 </div>
-              </div>
 
-              <div className="flex gap-2 flex-shrink-0">
-                <Link href={`/ebook/${order.ebookId}`}>
-                  <NeuButton variant="secondary" className="text-xs gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" />
-                      <path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" />
-                    </svg>
-                    Read
-                  </NeuButton>
-                </Link>
-              </div>
-            </div>
-          ))}
+                <div className="flex gap-4">
+                   <Link href={`/ebook/${order.ebookId}`} className="px-6 py-2 rounded-full bg-white text-black text-[10px] font-black uppercase tracking-tighter">View Protocol</Link>
+                </div>
+             </div>
+           ))}
         </div>
       )}
     </div>

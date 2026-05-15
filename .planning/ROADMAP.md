@@ -21,3 +21,17 @@
   - End-to-end testing of UPI flow.
   - Final UI/UX polish.
   - Merge `feature/upi-payment-integration` into `main`.
+
+## Milestone 4: Premium UI Redesign (Cinematic & Modern)
+- **Phase 5: Global Design System & Core Assets**
+  - Implement matte black theme and glassmorphism tokens in CSS.
+  - Create high-end hero and ebook cover assets.
+  - Implement Zepto-style splash/loading screen.
+- **Phase 6: Landing Page & Component Overhaul**
+  - Redesign Hero, Featured Series, and Why Choose Us sections.
+  - Update EbookCard and Detail views with category-based accent themes.
+  - Implement User Transformation and Pricing sections.
+- **Phase 7: Advanced Reader & Mobile Optimization**
+  - Redesign the ebook reading interface (Netflix/Kindle style).
+  - Optimize all views for mobile-first/app-like experience.
+  - Polish animations for speed and smoothness.

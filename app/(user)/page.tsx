@@ -7,63 +7,45 @@ import { SkeletonLoader } from "@/components/ui/SkeletonLoader";
 import { listEbooks, listTrendingEbooks } from "@/lib/api";
 import type { Ebook } from "@/lib/types";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  General: "📚",
-  Cybersecurity: "🔒",
-  Programming: "💻",
-  Networking: "🌐",
-  "Web Development": "🌍",
-  "Data Science": "📊",
-  "Cloud Computing": "☁️",
-  "Machine Learning": "🧠",
-  DevOps: "⚙️",
-  Security: "🛡️",
-  Linux: "🐧",
-  Python: "🐍",
-  JavaScript: "📜",
-  Hacking: "🎯",
-  Blockchain: "⛓️",
-  AI: "🤖",
-};
-
-function getCategoryIcon(name: string): string {
-  return CATEGORY_ICONS[name] || "📖";
-}
-
-function RatingStars({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.5;
-  const empty = 5 - full - (half ? 1 : 0);
-  const starSize = size === "md" ? "text-base" : "text-xs";
-
-  return (
-    <span className={`rating-stars ${starSize}`} aria-label={`${rating.toFixed(1)} out of 5 stars`}>
-      {Array.from({ length: full }, (_, i) => (
-        <span key={`f-${i}`} className="rating-star filled">★</span>
-      ))}
-      {half && <span className="rating-star filled">★</span>}
-      {Array.from({ length: empty }, (_, i) => (
-        <span key={`e-${i}`} className="rating-star">★</span>
-      ))}
-      <span className="ml-1 text-xs text-[var(--text-muted)]">{rating.toFixed(1)}</span>
-    </span>
-  );
-}
+const FEATURED_SERIES = [
+  {
+    id: 'lean',
+    title: 'Lean Build',
+    desc: 'Master the art of aesthetic muscle without the fat.',
+    img: '/images/lean_build.png',
+    accent: 'accent-lean',
+    price: 499
+  },
+  {
+    id: 'bulky',
+    title: 'Bulky Build',
+    desc: 'Massive strength and raw power for the hardgainers.',
+    img: '/images/bulky_build.png',
+    accent: 'accent-bulky',
+    price: 599
+  },
+  {
+    id: 'shredded',
+    title: 'Shredded',
+    desc: 'Peak conditioning and paper-thin skin systems.',
+    img: '/images/shredded.png',
+    accent: 'accent-shredded',
+    price: 449
+  },
+  {
+    id: 'power',
+    title: 'Power Lifter',
+    desc: 'Maximum performance and elite strength protocols.',
+    img: '/images/power_lifter.png',
+    accent: 'accent-power',
+    price: 699
+  }
+];
 
 export default function Home() {
   const [ebooks, setEbooks] = useState<Ebook[]>([]);
   const [trending, setTrending] = useState<Ebook[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [category, setCategory] = useState("All");
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
-    return () => clearTimeout(handler);
-  }, [search]);
 
   useEffect(() => {
     Promise.all([listEbooks(), listTrendingEbooks().catch(() => [])])
@@ -74,235 +56,260 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(ebooks.map((item) => item.category || "General"))).sort((a, b) =>
-      a.localeCompare(b),
-    );
-    return ["All", ...cats];
-  }, [ebooks]);
-
-  const filtered = useMemo(() => {
-    return ebooks.filter((item) => {
-      const matchCategory = category === "All" || (item.category || "General") === category;
-      const needle = debouncedSearch.toLowerCase();
-      const matchSearch =
-        !needle ||
-        item.title.toLowerCase().includes(needle) ||
-        item.description.toLowerCase().includes(needle) ||
-        (item.tags || []).some((tag) => tag.toLowerCase().includes(needle));
-      return matchCategory && matchSearch;
-    });
-  }, [ebooks, category, debouncedSearch]);
-
-  const newReleases = useMemo(() => {
-    return [...ebooks].sort((a, b) => b.id - a.id).slice(0, 8);
-  }, [ebooks]);
-
-  const topRated = useMemo(() => {
-    return [...ebooks]
-      .filter((item) => (item.averageRating || 0) > 0)
-      .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
-      .slice(0, 8);
-  }, [ebooks]);
-
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-12 px-4 py-6 pb-24 md:px-8 md:pb-8">
-      {/* ═══════ HERO SECTION ═══════ */}
-      <section className="hero-section animate-fade-in p-8 md:p-14">
-        <div className="relative z-10 max-w-2xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
-            <span className="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-            Premium Ebook Platform
+    <div className="w-full pb-20 overflow-x-hidden">
+      
+      {/* ═══════ 1. HERO SECTION ═══════ */}
+      <section className="relative h-[90vh] min-h-[600px] w-full flex items-center justify-center overflow-hidden">
+        {/* Cinematic Background */}
+        <div className="absolute inset-0">
+          <img 
+            src="/images/hero.png" 
+            alt="Hero Background" 
+            className="w-full h-full object-cover scale-105 animate-pulse-slow"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/60 to-black" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black/40" />
+        </div>
+
+        <div className="relative z-10 container mx-auto px-6 text-center lg:text-left flex flex-col lg:flex-row items-center gap-12">
+          <div className="max-w-3xl space-y-8 animate-slide-up">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Premium Fitness Protocols</span>
+            </div>
+            
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-black leading-[0.9] tracking-tighter text-white">
+              NOOB <br/> TO PRO
+            </h1>
+            
+            <p className="text-lg md:text-xl text-white/60 max-w-xl font-medium leading-relaxed">
+              Master Fitness Nutrition with Practical <span className="text-white">Indian Diet Systems</span>. Designed for those who demand excellence and discipline.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Link href="#featured" className="btn-premium flex items-center justify-center gap-2">
+                Start Reading
+              </Link>
+              <Link href="/library" className="btn-glass flex items-center justify-center gap-2 text-white">
+                Explore Series
+              </Link>
+            </div>
           </div>
-          <h1 className="text-4xl font-extrabold leading-tight text-white md:text-6xl">
-            Read, Learn,
-            <br />
-            <span className="text-white/90">Grow.</span>
-          </h1>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-white/80 md:text-lg">
-            Discover curated ebooks, preview before you buy, and unlock full access to build your skills.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="#featured"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-[var(--accent)] shadow-lg transition-transform hover:scale-105"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
-              </svg>
-              Start Reading
-            </Link>
-            <Link
-              href="/library"
-              className="inline-flex items-center gap-2 rounded-xl border-2 border-white/30 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10"
-            >
-              My Library →
-            </Link>
+        </div>
+        
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
+            <path d="M7 13l5 5 5-5M7 6l5 5 5-5" />
+          </svg>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-6 space-y-32 mt-20">
+        
+        {/* ═══════ 2. FEATURED SERIES SECTION ═══════ */}
+        <section id="featured" className="space-y-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tighter text-white">PREMIUM SERIES</h2>
+            <p className="text-white/40 font-bold uppercase tracking-widest text-sm">Elite Protocols for every goal</p>
           </div>
 
-          {/* Stats */}
-          <div className="mt-10 flex flex-wrap gap-8">
-            {[
-              { label: "Published Ebooks", value: ebooks.length.toString(), icon: "📚" },
-              { label: "Secure Auth", value: "JWT", icon: "🔐" },
-              { label: "Signed Delivery", value: "S3", icon: "☁️" },
-            ].map((stat) => (
-              <div key={stat.label} className="flex items-center gap-2">
-                <span className="text-2xl">{stat.icon}</span>
-                <div>
-                  <p className="text-lg font-bold text-white">{stat.value}</p>
-                  <p className="text-xs text-white/60">{stat.label}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {FEATURED_SERIES.map((series, idx) => (
+              <div 
+                key={series.id} 
+                className={`ebook-card-v2 group ${series.accent} glow-on-hover animate-fade-in`}
+                style={{ animationDelay: `${idx * 100}ms` }}
+              >
+                <img src={series.img} alt={series.title} className="h-full w-full object-cover" />
+                <div className="overlay" />
+                <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                  <div className="absolute top-6 left-6">
+                    <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-black uppercase tracking-widest text-white/90 border border-white/5">
+                      Elite Series
+                    </span>
+                  </div>
+                  <div className="space-y-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-2xl font-black text-white">{series.title}</h3>
+                    <p className="text-xs text-white/60 line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {series.desc}
+                    </p>
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-lg font-black text-white">₹{series.price}</span>
+                      <button className="px-6 py-2 rounded-full bg-white text-black text-[10px] font-black uppercase tracking-tighter">Get Now</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ═══════ SEARCH + FILTER BAR ═══════ */}
-      <section id="featured" className="space-y-4 animate-slide-up" style={{ animationDelay: "50ms" }}>
-        <div className="flex items-center justify-between">
-          <h2 className="section-title">
-            <span>📖</span> Featured Ebooks
-          </h2>
-          <span className="text-sm text-[var(--text-muted)]">
-            {loading ? "Loading..." : `${filtered.length} titles`}
-          </span>
-        </div>
-
-        <div className="glass-surface rounded-2xl p-4 space-y-3">
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by title, description, or tag..."
-              className="w-full rounded-xl border border-[var(--glass-border)] bg-transparent py-3 pl-10 pr-4 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:outline-none transition-colors"
-            />
+        {/* ═══════ 3. WHY CHOOSE US SECTION ═══════ */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 space-y-6">
+            <h2 className="text-4xl font-black tracking-tighter text-white leading-tight">WHY <br/> ESHIKSHA?</h2>
+            <p className="text-white/40 text-lg leading-relaxed font-medium">
+              We don't just sell books. We provide a blueprint for a legendary transformation using systems that actually work in an Indian household.
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {categories.map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setCategory(value)}
-                className={`category-chip ${value === category ? "active" : ""}`}
-              >
-                {value !== "All" && <span className="chip-icon">{getCategoryIcon(value)}</span>}
-                {value}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <SkeletonLoader shape="card" count={4} />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
-            {filtered.map((item) => (
-              <div key={item.id}>
-                <EbookCard ebook={item} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ═══════ TRENDING BOOKS ═══════ */}
-      {trending.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "80ms" }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <span>🔥</span> Trending Books
-            </h2>
-            <span className="text-sm text-[var(--text-muted)]">Based on purchases + views</span>
-          </div>
-          <div className="horizontal-scroll">
-            {trending.map((item, index) => (
-              <div key={item.id} className="w-64 flex-shrink-0" style={{ animationDelay: `${index * 60}ms` }}>
-                <EbookCard ebook={item} compact />
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              { title: "Indian Meal Plans", desc: "No more expensive avocados. Real Indian food for real gains.", icon: "🍛" },
+              { title: "Budget Friendly", desc: "Nutrition that fits your pocket without compromising macros.", icon: "💰" },
+              { title: "USDA Data", desc: "Scientifically backed nutrition data for accurate tracking.", icon: "🔬" },
+              { title: "Beginner Ready", desc: "Simple guides that turn noobs into experts in weeks.", icon: "🔰" }
+            ].map((item, idx) => (
+              <div key={idx} className="glass-panel p-8 rounded-3xl group hover:border-white/20 transition-all">
+                <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform">{item.icon}</div>
+                <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+                <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </section>
-      )}
 
-      {/* ═══════ CATEGORIES SECTION ═══════ */}
-      <section id="categories" className="space-y-4 animate-slide-up" style={{ animationDelay: "120ms" }}>
-        <div className="section-header">
-          <h2 className="section-title">
-            <span>🏷️</span> Browse by Category
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {categories
-            .filter((c) => c !== "All")
-            .map((cat) => {
-              const count = ebooks.filter((e) => (e.category || "General") === cat).length;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => {
-                    setCategory(cat);
-                    document.getElementById("featured")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="premium-card flex flex-col items-center gap-2 p-5 text-center cursor-pointer"
-                >
-                  <span className="text-3xl">{getCategoryIcon(cat)}</span>
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">{cat}</span>
-                  <span className="text-xs text-[var(--text-muted)]">{count} ebook{count !== 1 ? "s" : ""}</span>
-                </button>
-              );
-            })}
-        </div>
-      </section>
-
-      {/* ═══════ NEW RELEASES ═══════ */}
-      {newReleases.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "160ms" }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <span>🆕</span> New Releases
-            </h2>
+        {/* ═══════ 4. INSIDE THE EBOOK ═══════ */}
+        <section className="glass-panel rounded-[3rem] p-8 md:p-16 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full" />
+          <div className="relative z-10 flex flex-col lg:flex-row gap-16 items-center">
+            <div className="flex-1 space-y-8 text-center lg:text-left">
+              <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white">INSIDE THE <br/> PROTOCOL</h2>
+              <p className="text-white/40 text-xl font-medium">Visual. Interactive. Data-Driven.</p>
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <div className="text-3xl font-black text-white">40+</div>
+                  <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Macro Charts</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-3xl font-black text-white">12</div>
+                  <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Workout Tables</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-3xl font-black text-white">50+</div>
+                  <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Food Options</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-3xl font-black text-white">HD</div>
+                  <div className="text-[10px] uppercase tracking-widest text-white/30 font-bold">Illustrations</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1 relative">
+              <div className="aspect-square w-full max-w-md mx-auto bg-gradient-to-br from-white/10 to-transparent rounded-3xl border border-white/10 p-8 flex items-center justify-center">
+                {/* Mock UI Element */}
+                <div className="w-full space-y-6">
+                   <div className="flex justify-between items-end">
+                      <div className="h-24 w-8 bg-blue-500 rounded-t-lg animate-bounce" style={{animationDuration: '2s'}}/>
+                      <div className="h-32 w-8 bg-blue-400 rounded-t-lg animate-bounce" style={{animationDuration: '2.5s'}}/>
+                      <div className="h-40 w-8 bg-blue-600 rounded-t-lg animate-bounce" style={{animationDuration: '1.8s'}}/>
+                      <div className="h-28 w-8 bg-blue-300 rounded-t-lg animate-bounce" style={{animationDuration: '3s'}}/>
+                   </div>
+                   <div className="h-2 w-full bg-white/10 rounded-full">
+                      <div className="h-full w-2/3 bg-blue-500 rounded-full animate-pulse" />
+                   </div>
+                   <div className="text-center text-[10px] font-bold text-white/20 tracking-widest">REAL-TIME MACRO TRACKING</div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="horizontal-scroll">
-            {newReleases.map((item, index) => (
-              <div key={item.id} className="w-64 flex-shrink-0" style={{ animationDelay: `${index * 60}ms` }}>
-                <EbookCard ebook={item} compact />
+        </section>
+
+        {/* ═══════ 5. USER TRANSFORMATIONS ═══════ */}
+        <section className="space-y-16">
+          <div className="text-center">
+            <h2 className="text-5xl font-black tracking-tighter text-white">TRANSFORMATIONS</h2>
+            <p className="text-white/40 mt-4 font-bold tracking-widest">Real people. Real discipline.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="glass-panel p-6 rounded-3xl space-y-6">
+                <div className="aspect-[4/5] bg-white/5 rounded-2xl overflow-hidden relative group">
+                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 transition-colors" />
+                  <div className="absolute bottom-4 left-4 right-4 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/5">
+                    <p className="text-xs font-bold text-white italic">"Lost 12kg in 3 months following the Shredded protocol. The diet was so sustainable."</p>
+                    <div className="mt-3 flex items-center gap-2">
+                       <div className="w-6 h-6 rounded-full bg-blue-500" />
+                       <span className="text-[10px] font-black text-white/80">User #{i}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </section>
-      )}
 
-      {/* ═══════ TOP RATED ═══════ */}
-      {topRated.length > 0 && (
-        <section className="space-y-4 animate-slide-up" style={{ animationDelay: "200ms" }}>
-          <div className="section-header">
-            <h2 className="section-title">
-              <span>⭐</span> Top Rated
-            </h2>
+        {/* ═══════ 6. PRICING SECTION ═══════ */}
+        <section className="space-y-16">
+           <div className="text-center">
+            <h2 className="text-5xl font-black tracking-tighter text-white">JOIN THE ELITE</h2>
           </div>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-children">
-            {topRated.map((item) => (
-              <div key={item.id}>
-                <EbookCard ebook={item} />
-              </div>
-            ))}
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+             <div className="glass-panel p-10 rounded-[2.5rem] space-y-6 border-white/5 order-2 md:order-1">
+                <h3 className="text-2xl font-black text-white/60">Single Ebook</h3>
+                <div className="text-5xl font-black text-white">₹499</div>
+                <ul className="space-y-4 text-sm text-white/40 font-medium">
+                   <li className="flex items-center gap-2">✓ Full PDF Access</li>
+                   <li className="flex items-center gap-2">✓ Lifetime Updates</li>
+                   <li className="flex items-center gap-2">✓ Mobile Reading UI</li>
+                </ul>
+                <button className="w-full py-4 rounded-full bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all">Buy Single</button>
+             </div>
+
+             <div className="glass-panel p-12 rounded-[3rem] space-y-8 border-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.2)] transform scale-110 z-20 order-1 md:order-2 bg-gradient-to-b from-blue-500/10 to-transparent">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-500 rounded-full text-[10px] font-black uppercase tracking-widest text-white">Best Value</div>
+                <h3 className="text-3xl font-black text-white">Master Bundle</h3>
+                <div className="text-7xl font-black text-white">₹1499</div>
+                <ul className="space-y-4 text-base text-white/70 font-bold">
+                   <li className="flex items-center gap-2 text-blue-400">✓ All 4 Elite Series</li>
+                   <li className="flex items-center gap-2">✓ Priority Support</li>
+                   <li className="flex items-center gap-2">✓ Bonus Recipe Guide</li>
+                   <li className="flex items-center gap-2">✓ Workout Tracker App</li>
+                </ul>
+                <button className="w-full py-5 rounded-full bg-blue-500 text-white font-black text-lg shadow-xl hover:bg-blue-600 transition-all active:scale-95">Unlock Everything</button>
+             </div>
+
+             <div className="glass-panel p-10 rounded-[2.5rem] space-y-6 border-white/5 order-3 md:order-3">
+                <h3 className="text-2xl font-black text-white/60">Premium Access</h3>
+                <div className="text-5xl font-black text-white">₹1999</div>
+                <ul className="space-y-4 text-sm text-white/40 font-medium">
+                   <li className="flex items-center gap-2">✓ Bundle + Consultation</li>
+                   <li className="flex items-center gap-2">✓ Private Discord</li>
+                   <li className="flex items-center gap-2">✓ Monthly Webinars</li>
+                </ul>
+                <button className="w-full py-4 rounded-full bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all">Go Pro</button>
+             </div>
           </div>
         </section>
-      )}
+
+        {/* ═══════ EXPLORE ALL (Dynamic) ═══════ */}
+        <section id="all-ebooks" className="space-y-12">
+          <div className="flex items-center justify-between border-b border-white/5 pb-8">
+            <h2 className="text-3xl font-black tracking-tighter text-white">EXPLORE ALL</h2>
+            <Link href="/library" className="text-xs font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors">View Library →</Link>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              <SkeletonLoader shape="card" count={4} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
+              {ebooks.map((item) => (
+                <div key={item.id}>
+                  <EbookCard ebook={item} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { ThemeInitializer } from "../components/layout/ThemeInitializer";
 import { GlobalLoader } from "../components/layout/GlobalLoader";
+import { SplashLoader } from "../components/ui/SplashLoader";
 
 function toOrigin(url: string) {
   try {
@@ -37,8 +38,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "EShikhsha | Premium Cybersecurity Ebook Platform",
-  description: "Discover, preview, and purchase premium cybersecurity ebooks. Learn, practice, and master security skills with EShikhsha's curated collection.",
+  title: "EShikhsha | Premium Fitness & Mastery",
+  description: "Master Fitness Nutrition with Practical Indian Diet Systems. Cinematic, Modern, Aesthetic.",
   keywords: ["ebooks", "cybersecurity", "learning", "PDF", "online books", "security training"],
   openGraph: {
     title: "EShikhsha | Premium Cybersecurity Ebook Platform",
@@ -75,6 +76,7 @@ export default function RootLayout({
         ))}
       </head>
       <body className="min-h-full">
+        <SplashLoader />
         <ThemeInitializer />
         <GlobalLoader />
         <div className="relative">
