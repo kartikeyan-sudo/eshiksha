@@ -37,19 +37,19 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "EShikhsha | Premium Cybersecurity Ebook Platform",
-  description: "Discover, preview, and purchase premium cybersecurity ebooks. Learn, practice, and master security skills with EShikhsha's curated collection.",
-  keywords: ["ebooks", "cybersecurity", "learning", "PDF", "online books", "security training"],
+  title: "EShikhsha | Universal Premium Ebook Platform",
+  description: "Discover, preview, and purchase premium ebooks across all categories. Learn, grow, and master new skills with EShikhsha's curated collection.",
+  keywords: ["ebooks", "learning", "study", "nutrition", "PDF", "online books", "skills"],
   openGraph: {
-    title: "EShikhsha | Premium Cybersecurity Ebook Platform",
-    description: "Discover, preview, and purchase premium cybersecurity ebooks.",
+    title: "EShikhsha | Universal Premium Ebook Platform",
+    description: "Discover, preview, and purchase premium ebooks across all categories.",
     type: "website",
     siteName: "EShikhsha",
   },
   twitter: {
     card: "summary_large_image",
-    title: "EShikhsha | Premium Cybersecurity Ebook Platform",
-    description: "Discover, preview, and purchase premium cybersecurity ebooks.",
+    title: "EShikhsha | Universal Premium Ebook Platform",
+    description: "Discover, preview, and purchase premium ebooks across all categories.",
   },
   robots: {
     index: true,
