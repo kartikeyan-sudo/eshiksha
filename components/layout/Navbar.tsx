@@ -5,7 +5,6 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clearClientAuth, getClientAuthState } from "@/lib/auth";
 import { NeuButton } from "@/components/ui/NeuButton";
-import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -85,7 +84,6 @@ export function Navbar() {
 
           {/* Desktop Right */}
           <div className="hidden items-center gap-4 md:flex">
-            <ThemeToggle />
             {authState.isAuthenticated ? (
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] text-white text-xs font-bold shadow-sm">
@@ -104,7 +102,6 @@ export function Navbar() {
 
           {/* Mobile Hamburger */}
           <div className="flex items-center gap-2 md:hidden">
-            <ThemeToggle />
             <button
               type="button"
               aria-label={isOpen ? "Close menu" : "Open menu"}

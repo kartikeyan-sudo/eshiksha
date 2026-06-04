@@ -145,6 +145,23 @@ export async function downloadEbookFile(id: string | number, token: string) {
   return response.blob();
 }
 
+export async function downloadPreviewFile(id: string | number, token: string) {
+  const response = await fetch(`${API_BASE}/api/ebooks/${id}/preview`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new ApiError(payload.message || "Preview download failed", response.status);
+  }
+
+  return response.blob();
+}
+
 // ═══════ Purchases ═══════
 
 export function purchaseEbook(id: string | number, token: string) {

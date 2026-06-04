@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createRazorpayOrder, downloadEbookFile, getEbookAccess, listRelatedBooks, purchaseEbook, trackEbookView, verifyRazorpayPayment, getPurchaseSettings, submitAlreadyPaid } from "@/lib/api";
+import { createRazorpayOrder, downloadEbookFile, downloadPreviewFile, getEbookAccess, listRelatedBooks, purchaseEbook, trackEbookView, verifyRazorpayPayment, getPurchaseSettings, submitAlreadyPaid } from "@/lib/api";
 import { getClientToken } from "@/lib/auth";
 import { NeuBadge } from "@/components/ui/NeuBadge";
 import { NeuButton } from "@/components/ui/NeuButton";
@@ -114,6 +114,7 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
   const [loadingAccess, setLoadingAccess] = useState(false);
   const [buying, setBuying] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [downloadingPreview, setDownloadingPreview] = useState(false);
   const [message, setMessage] = useState("");
   const [toastVariant, setToastVariant] = useState<"success" | "error">("success");
   const [showToast, setShowToast] = useState(false);
@@ -289,6 +290,36 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
     }
   };
 
+  const downloadPreview = async () => {
+    const token = getClientToken();
+    if (!token) {
+      setToastVariant("error");
+      setMessage("Please login to download preview");
+      setShowToast(true);
+      router.push("/login");
+      return;
+    }
+
+    setDownloadingPreview(true);
+    try {
+      const blob = await downloadPreviewFile(ebook.id, token);
+      const objectUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${ebook.title}_Preview.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      setToastVariant("error");
+      setMessage(error instanceof Error ? error.message : "Download failed");
+      setShowToast(true);
+    } finally {
+      setDownloadingPreview(false);
+    }
+  };
+
   const downloadEbook = async () => {
     const token = getClientToken();
     if (!token) {
@@ -427,6 +458,22 @@ export function EbookDetailView({ ebook }: EbookDetailViewProps) {
                       Buy Now
                     </>
                   )}
+                </NeuButton>
+              )}
+              
+              {!hasAccess && ebook.previewKey && (
+                <NeuButton 
+                  variant="secondary" 
+                  className="ebook-download-btn flex-1" 
+                  onClick={downloadPreview} 
+                  loading={downloadingPreview}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download Preview
                 </NeuButton>
               )}
               

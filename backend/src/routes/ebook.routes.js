@@ -18,6 +18,7 @@ async function mapEbookWithCover(row) {
     description: row.description,
     price: Number(row.price),
     fileKey: row.file_key,
+    previewKey: row.preview_key || null,
     coverKey: row.cover_key,
     previewPages: row.preview_pages,
     category: row.category,
@@ -36,11 +37,13 @@ router.post(
   authorizeAdmin,
   upload.fields([
     { name: "pdf", maxCount: 1 },
+    { name: "preview_pdf", maxCount: 1 },
     { name: "cover", maxCount: 1 },
   ]),
   asyncHandler(async (req, res) => {
     const { title, description, price, preview_pages, category, tags, is_free } = req.body;
     const pdf = req.files?.pdf?.[0];
+    const previewPdf = req.files?.preview_pdf?.[0];
     const cover = req.files?.cover?.[0];
 
     const parsedPrice = Number(price);
@@ -62,6 +65,17 @@ router.post(
       contentType: pdf.mimetype || "application/pdf",
     });
 
+    let previewPdfKey = null;
+    if (previewPdf) {
+      const previewExtension = (previewPdf.originalname.split(".").pop() || "pdf").toLowerCase();
+      previewPdfKey = `preview/${fileId}.${previewExtension}`;
+      await uploadBuffer({
+        key: previewPdfKey,
+        buffer: previewPdf.buffer,
+        contentType: previewPdf.mimetype || "application/pdf",
+      });
+    }
+
     await uploadBuffer({
       key: coverKey,
       buffer: cover.buffer,
@@ -77,11 +91,11 @@ router.post(
 
     const created = await pool.query(
       `
-      INSERT INTO ebooks (title, description, price, file_key, cover_key, preview_pages, category, tags, is_free)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING id, title, description, price, file_key, cover_key, preview_pages, category, tags, is_free, views_count, 0::float AS average_rating, 0::int AS ratings_count
+      INSERT INTO ebooks (title, description, price, file_key, preview_key, cover_key, preview_pages, category, tags, is_free)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING id, title, description, price, file_key, preview_key, cover_key, preview_pages, category, tags, is_free, views_count, 0::float AS average_rating, 0::int AS ratings_count
       `,
-      [title, description, parsedPrice, pdfKey, coverKey, parsedPreviewPages, normalizedCategory, normalizedTags, isFree],
+      [title, description, parsedPrice, pdfKey, previewPdfKey, coverKey, parsedPreviewPages, normalizedCategory, normalizedTags, isFree],
     );
 
     const ebook = await mapEbookWithCover(created.rows[0]);
@@ -129,6 +143,7 @@ router.get(
         e.description,
         e.price,
         e.file_key,
+        e.preview_key,
         e.cover_key,
         e.preview_pages,
         e.category,
@@ -162,6 +177,7 @@ router.get(
         e.description,
         e.price,
         e.file_key,
+        e.preview_key,
         e.cover_key,
         e.preview_pages,
         e.category,
@@ -213,6 +229,7 @@ router.get(
         e.description,
         e.price,
         e.file_key,
+        e.preview_key,
         e.cover_key,
         e.preview_pages,
         e.category,
@@ -265,6 +282,7 @@ router.get(
         e.description,
         e.price,
         e.file_key,
+        e.preview_key,
         e.cover_key,
         e.preview_pages,
         e.category,
@@ -321,7 +339,7 @@ router.delete(
     }
 
     const result = await pool.query(
-      "SELECT id, file_key, cover_key FROM ebooks WHERE id = $1",
+      "SELECT id, file_key, preview_key, cover_key FROM ebooks WHERE id = $1",
       [ebookId],
     );
 
@@ -333,6 +351,9 @@ router.delete(
 
     try {
       await deleteObject(ebook.file_key);
+      if (ebook.preview_key) {
+        await deleteObject(ebook.preview_key);
+      }
       await deleteObject(ebook.cover_key);
     } catch {
       return res.status(500).json({ message: "Failed to delete files from S3. DB record kept intact." });
@@ -353,7 +374,7 @@ router.get(
     }
 
     const ebookResult = await pool.query(
-      "SELECT id, file_key, preview_pages, is_free FROM ebooks WHERE id = $1",
+      "SELECT id, file_key, preview_key, preview_pages, is_free FROM ebooks WHERE id = $1",
       [ebookId],
     );
 
@@ -391,7 +412,7 @@ router.get(
     }
 
     const ebookResult = await pool.query(
-      "SELECT id, file_key, is_free FROM ebooks WHERE id = $1",
+      "SELECT id, file_key, preview_key, is_free FROM ebooks WHERE id = $1",
       [ebookId],
     );
 
@@ -400,7 +421,29 @@ router.get(
     }
 
     const ebook = ebookResult.rows[0];
-    const pdfBuffer = await getObjectBuffer(ebook.file_key);
+
+    // Check if user has purchase or if it's free
+    const purchaseResult = await pool.query(
+      "SELECT id, status FROM purchases WHERE user_id = $1 AND ebook_id = $2",
+      [req.user.id, ebookId],
+    );
+
+    const hasValidPurchase = purchaseResult.rowCount > 0 && purchaseResult.rows[0].status === 'completed';
+    const hasAccess = hasValidPurchase || ebook.is_free;
+
+    let pdfKey = ebook.file_key; // default to full PDF
+    
+    if (!hasAccess) {
+      // If they don't have access, check if a preview PDF exists
+      if (ebook.preview_key) {
+        pdfKey = ebook.preview_key;
+      } else {
+        // If no preview PDF exists, return 403 Forbidden
+        return res.status(403).json({ message: "Purchase required to access full content" });
+      }
+    }
+
+    const pdfBuffer = await getObjectBuffer(pdfKey);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Length", String(pdfBuffer.length));
@@ -440,6 +483,40 @@ router.get(
     const ebook = ebookResult.rows[0];
     const fileName = `${ebookId}.pdf`;
     const pdfBuffer = await getObjectBuffer(ebook.file_key);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Length", String(pdfBuffer.length));
+    res.setHeader("Content-Disposition", `attachment; filename=\"${fileName}\"`);
+    res.setHeader("Cache-Control", "no-store");
+    return res.send(pdfBuffer);
+  }),
+);
+
+router.get(
+  "/:id/preview",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const ebookId = Number(req.params.id);
+    if (!Number.isInteger(ebookId)) {
+      return res.status(400).json({ message: "Invalid ebook id" });
+    }
+
+    const ebookResult = await pool.query(
+      "SELECT id, preview_key, title FROM ebooks WHERE id = $1",
+      [ebookId],
+    );
+
+    if (ebookResult.rowCount === 0) {
+      return res.status(404).json({ message: "Ebook not found" });
+    }
+
+    const ebook = ebookResult.rows[0];
+    if (!ebook.preview_key) {
+      return res.status(404).json({ message: "No preview PDF available for this ebook" });
+    }
+
+    const pdfBuffer = await getObjectBuffer(ebook.preview_key);
+    const fileName = `${ebook.title.replace(/[^a-zA-Z0-9]/g, "_")}_preview.pdf`;
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Length", String(pdfBuffer.length));

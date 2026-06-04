@@ -16,6 +16,7 @@ export function UploadForm() {
   const [tags, setTags] = useState("");
   const [isFree, setIsFree] = useState(false);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [previewPdfFile, setPreviewPdfFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState(false);
@@ -33,9 +34,9 @@ export function UploadForm() {
       return;
     }
 
-    if (!pdfFile || !coverFile) {
+    if (!pdfFile || !previewPdfFile || !coverFile) {
       setToastVariant("error");
-      setMessage("Both PDF and cover image are required");
+      setMessage("Original PDF, Preview PDF, and Cover Image are all required");
       setToast(true);
       return;
     }
@@ -52,6 +53,7 @@ export function UploadForm() {
       formData.append("tags", tags);
       formData.append("is_free", String(isFree));
       formData.append("pdf", pdfFile);
+      formData.append("preview_pdf", previewPdfFile);
       formData.append("cover", coverFile);
 
       await uploadEbook(formData, token);
@@ -65,6 +67,7 @@ export function UploadForm() {
       setTags("");
       setIsFree(false);
       setPdfFile(null);
+      setPreviewPdfFile(null);
       setCoverFile(null);
       setToast(true);
     } catch (error) {
@@ -88,7 +91,7 @@ export function UploadForm() {
           {/* PDF Upload Zone */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
-              PDF File
+              Original / Full PDF File
             </label>
             <label
               className="neu-inset flex flex-col items-center justify-center gap-3 rounded-xl p-8 cursor-pointer hover:bg-[var(--accent-soft)] transition-colors duration-200 border-2 border-dashed border-[var(--glass-border)]"
@@ -98,7 +101,7 @@ export function UploadForm() {
               </svg>
               <div className="text-center">
                 <p className="text-sm font-medium text-[var(--text-primary)]">
-                  {pdfFile?.name || "Drop PDF here or click to browse"}
+                  {pdfFile?.name || "Drop Original PDF here or click to browse"}
                 </p>
                 <p className="text-xs text-[var(--text-muted)] mt-1">PDF files up to 50MB</p>
               </div>
@@ -109,6 +112,35 @@ export function UploadForm() {
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) setPdfFile(file);
+                }}
+              />
+            </label>
+          </div>
+
+          {/* Preview PDF Upload Zone */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
+              Preview PDF File
+            </label>
+            <label
+              className="neu-inset flex flex-col items-center justify-center gap-3 rounded-xl p-8 cursor-pointer hover:bg-[var(--accent-soft)] transition-colors duration-200 border-2 border-dashed border-[var(--glass-border)]"
+            >
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              <div className="text-center">
+                <p className="text-sm font-medium text-[var(--text-primary)]">
+                  {previewPdfFile?.name || "Drop Preview PDF here or click to browse"}
+                </p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">PDF files up to 50MB</p>
+              </div>
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setPreviewPdfFile(file);
                 }}
               />
             </label>

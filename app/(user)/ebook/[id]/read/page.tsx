@@ -36,14 +36,19 @@ export default function EbookReadPage() {
         return;
       }
 
-      const token = getClientToken() || "mock-token";
+      const token = getClientToken();
+      if (!token) {
+        setLoading(false);
+        router.push("/login");
+        return;
+      }
 
       try {
-        // Mock access
-        setPdfUrl("/mock.pdf");
+        const access = await getEbookAccess(ebookIdNumber, token);
+        setPdfUrl(access.pdfUrl);
         setViewerToken(token);
-        setHasAccess(false);
-        setPreviewPages(5);
+        setHasAccess(access.hasAccess);
+        setPreviewPages(access.previewPages);
       } catch (error) {
         setToastVariant("error");
         setMessage(error instanceof Error ? error.message : "Could not load reader");
@@ -56,7 +61,7 @@ export default function EbookReadPage() {
     };
 
     fetchEbookAccess();
-  }, [ebookId, router]);
+  }, [ebookId, ebookIdNumber, router]);
 
   if (loading) {
     return (

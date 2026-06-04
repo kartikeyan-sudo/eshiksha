@@ -31,6 +31,7 @@ async function initDatabase() {
       description TEXT NOT NULL,
       price NUMERIC(10, 2) NOT NULL,
       file_key TEXT NOT NULL,
+      preview_key TEXT,
       cover_key TEXT NOT NULL,
       preview_pages INTEGER NOT NULL DEFAULT 3,
       category VARCHAR(80) NOT NULL DEFAULT 'General',
@@ -40,6 +41,7 @@ async function initDatabase() {
     );
   `);
 
+  await pool.query("ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS preview_key TEXT");
   await pool.query("ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS category VARCHAR(80) NOT NULL DEFAULT 'General'");
   await pool.query("ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]");
   await pool.query("ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS is_free BOOLEAN NOT NULL DEFAULT FALSE");

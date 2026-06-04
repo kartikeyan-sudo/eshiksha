@@ -20,6 +20,7 @@ export type Ebook = {
   description: string;
   price: number;
   fileKey: string;
+  previewKey?: string | null;
   coverKey: string;
   previewPages: number;
   category?: string;

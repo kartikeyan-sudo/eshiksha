@@ -5,45 +5,9 @@
    Clean, minimal, high-conversion Scribd-like aesthetic
    ======================================================== */
 
-/* --- Light Theme --- */
+/* --- Always Dark Theme --- */
 :root,
-[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f4f7fd;
-  --bg-gradient-from: #ebf3ff;
-  --bg-gradient-to: #f8fbff;
-  --surface: rgba(255, 255, 255, 0.84);
-  --surface-hover: rgba(255, 255, 255, 0.96);
-  --surface-raised: rgba(255, 255, 255, 0.92);
-  --glass: rgba(255, 255, 255, 0.72);
-  --glass-border: rgba(37, 99, 235, 0.16);
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --accent: #2563eb;
-  --accent-hover: #1d4ed8;
-  --accent-soft: rgba(37, 99, 235, 0.12);
-  --accent-secondary: #0ea5e9;
-  --neu-shadow-dark: rgba(15, 23, 42, 0.12);
-  --neu-shadow-light: rgba(255, 255, 255, 0.92);
-  --danger: #ef4444;
-  --success: #16a34a;
-  --info: #2563eb;
-  --warning: #f59e0b;
-  --card-bg: rgba(255, 255, 255, 0.86);
-  --input-bg: rgba(255, 255, 255, 0.68);
-  --overlay: rgba(2, 6, 23, 0.45);
-  --hero-gradient-1: #1d4ed8;
-  --hero-gradient-2: #0284c7;
-  --hero-gradient-3: #06b6d4;
-  --star-color: #f59e0b;
-  --star-empty: #d1d5db;
-  --bottom-nav-bg: rgba(255, 255, 255, 0.94);
-  --reader-bg: #ffffff;
-  --reader-text: #0f172a;
-}
-
-/* --- Dark Theme --- */
+[data-theme="light"],
 [data-theme="dark"] {
   color-scheme: dark;
   --bg: #030712;
